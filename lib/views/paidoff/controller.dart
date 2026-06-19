@@ -1,0 +1,167 @@
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:intl/intl.dart';
+import 'package:apploan/core/core.dart';
+import 'package:apploan/models/models.dart';
+import 'package:pull_to_refresh/pull_to_refresh.dart';
+import 'package:apploan/views/views.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+class PaidOffController extends GetxController {
+  final RxInt selectedStatusValue = 0.obs;
+  final TextEditingController startBillCreateDateCtl = TextEditingController();
+  final TextEditingController endBillCreateDateCtl = TextEditingController();
+  final TextEditingController totalClient = TextEditingController();
+  final TextEditingController totalAmount = TextEditingController();
+  final TextEditingController searchCtl = TextEditingController();
+  final RxList<PaidOffModel> repaymentModels = <PaidOffModel>[].obs;
+  final RxBool isLoading = false.obs;
+  final PaginationModel pagination = PaginationModel(limit: 15);
+  final RefreshController refreshCtl = RefreshController(initialRefresh: false);
+  final RxBool isToggleOpen = false.obs;
+  num total = 0;
+
+  final StartController startCtl = Get.find<StartController>();
+
+  @override
+  void onInit() {
+    super.onInit();
+  }
+
+  @override
+  void onClose() {
+    searchCtl.dispose();
+    refreshCtl.dispose();
+    super.onClose();
+  }
+
+  // show user_id from login
+  Future<int?> getUserId() async {
+    int? user_id = await SharedPreferencesManager.getIntValue('user_id');
+    return user_id;
+  }
+
+  Future<int?> getBranchId() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return SharedPreferencesManager.getIntValue('branch_id');
+  }
+
+  Future<void> fetchRepayment({
+    bool isRefresh = false,
+    bool isLoadMore = false,
+    bool isFilter = false,
+  }) async {
+    int? branchId = await getBranchId();
+    int? user_id = await getUserId();
+    try {
+      if (isRefresh) {
+        if (!isFilter) {
+          clearFilter();
+        }
+        pagination.refresh();
+      }
+
+      if (pagination.isEndOfPage) {
+        return;
+      }
+
+      // Show loading only when first time and filter
+      if ((!isRefresh && !isLoadMore) || isFilter) {
+        isLoading.value = true;
+      }
+
+      final Map<String, dynamic> params = {
+        'branch_id': branchId,
+        'user_id': user_id,
+      };
+
+      String endPoint = EndPoints.PaidLoan;
+
+      final res = await Get.find<ApiService>().get(
+        endPoint,
+        queryParameters: params,
+        isShowLoading: false,
+      );
+
+      // Take care of load more error when while load more user switch the tap
+      if (startCtl.selectedIndex.value != 3 && isLoadMore) {
+        return;
+      }
+
+      // final data = getPropertyFromJson(DatabaseHelper.instance.queryAllRowsRepayments(1),"data");
+      // print(data);
+      final data = getPropertyFromJson(res.data, 'data');
+      totalClient.text = getPropertyFromJson(res.data, 'totalClient');
+      totalAmount.text = getPropertyFromJson(res.data, 'totalAmount');
+
+      // total = getPropertyFromJson(res.data['totalAmount'], 'total') ?? 0;
+      // pagination.checkLoadMore((data['data'] as List).length);
+
+      if (isRefresh) {
+        repaymentModels.value = List<PaidOffModel>.from(
+          (data as List).map((e) => PaidOffModel.fromJson(e)).toList(),
+        );
+      } else {
+        repaymentModels.addAll(
+          List<PaidOffModel>.from(
+            (data as List).map((e) => PaidOffModel.fromJson(e)).toList(),
+          ),
+        );
+      }
+    } catch (e) {
+      if (isClosed) {
+        return;
+      }
+      ExceptionHandler.handleException(e);
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> fetchRepaymentSearch({
+    bool isRefresh = false,
+    bool isLoadMore = false,
+    bool isFilter = false,
+  }) async {
+    if (isFilter == true) {
+      String searchText = searchCtl.text.toLowerCase();
+      repaymentModels.value = List<PaidOffModel>.from(
+        repaymentModels.value.where(
+          (item) => item.client.toLowerCase().contains(searchText),
+        ),
+      );
+    } else {
+      onRefresh();
+    }
+  }
+
+  Future<void> onRefresh({bool isFilter = false}) async {
+    await fetchRepayment(isRefresh: true, isFilter: isFilter);
+    refreshCtl.refreshCompleted();
+  }
+
+  Future<void> onLoading() async {
+    await fetchRepayment(isLoadMore: true);
+    refreshCtl.loadComplete();
+  }
+
+  void setSearchValue() {
+    selectedStatusValue.value = 0;
+  }
+
+  void setFilterValue({num value = 0}) {
+    searchCtl.text = '';
+  }
+
+  void clearFilter() {
+    searchCtl.text = '';
+  }
+
+  String formatCurrency(String amount) {
+    return amount != null
+        ? '៛${NumberFormat.currency(locale: 'en_US', symbol: '').format(double.parse(amount))}'
+        : 'N/A';
+  }
+}

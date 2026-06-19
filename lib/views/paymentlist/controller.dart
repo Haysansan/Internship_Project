@@ -1,0 +1,231 @@
+import 'dart:convert';
+
+import 'package:apploan/core/offline/database_helper.dart';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:apploan/core/core.dart';
+import 'package:apploan/models/models.dart';
+import 'package:apploan/views/views.dart';
+import 'package:dio/dio.dart' as dio;
+import 'package:intl/intl.dart';
+
+class PaymentListController extends GetxController {
+  final TextEditingController searchCtl = TextEditingController();
+  final GlobalKey<FormState> formKey = GlobalKey<FormState>();
+  final RxList<PaymentModel> repayment = <PaymentModel>[].obs;
+  // final RxList<RepaymentModel> bmRepaymentList = <RepaymentModel>[].obs;
+  final RxBool isLoading = false.obs;
+  // final RxBool isRepaymentLoading = false.obs;
+  final TextEditingController totalClient = TextEditingController();
+  final TextEditingController totalAmount = TextEditingController();
+  final RxString selectedTab = 'paylist'.obs;
+
+  // Summary raw values for CustomSummaryCard
+  final RxInt collectedClients = 0.obs;
+  final RxDouble collectedSumRaw = 0.0.obs;
+  final RxDouble totalRepaymentRaw = 0.0.obs;
+  final RxDouble exchangeRate = 4100.0.obs;
+
+  bool _paylistFetched = false;
+  // bool _repaymentFetched = false;
+  bool isDone = false;
+  final StartController startCtl = Get.find<StartController>();
+
+  @override
+  void onInit() {
+    if (UserRepository.shared.isCO) {
+      fetchpaymentList();
+    } else {
+      fetchpaymentListFromApi();
+    }
+    print('PaymentListController CREATED');
+    super.onInit();
+  }
+
+  String formatCurrency(String amount) {
+    return amount != null
+        ? '${NumberFormat.currency(locale: 'en_US', symbol: '').format(double.parse(amount))}'
+            .replaceAll('.00', ' រៀល')
+        : 'N/A';
+  }
+
+  @override
+  void onClose() {
+    searchCtl.dispose();
+    fetchpaymentList();
+    super.onClose();
+    print('PaymentListController DESTROYED');
+  }
+
+  Future<int?> getbranchId() async {
+    return await SharedPreferencesManager.getIntValue('branch_id');
+  }
+
+  Future<int?> getUserId() async {
+    return await SharedPreferencesManager.getIntValue('user_id');
+  }
+
+  int customerCount = 0;
+  Future<void> _countCustomers() async {
+    customerCount = await DatabaseHelper.instance.countCustomersCollection();
+    totalClient.text = customerCount.toString();
+  }
+
+  double sum = 0;
+  Future<void> _calculateSum() async {
+    List<PaymentModel> rows =
+        await DatabaseHelper.instance.queryAllRowsCollected();
+    sum = rows.fold(
+      0.0,
+      (prev, element) => prev + double.parse(element.total_repayment),
+    );
+    totalAmount.text = formatCurrency(sum.toString());
+  }
+
+  void clearFilter() {
+    searchCtl.text = '';
+  }
+
+  Future<void> fetchpaymentList() async {
+    try {
+      isLoading.value = true;
+      await _countCustomers();
+      await _calculateSum();
+      collectedSumRaw.value = sum;
+      totalRepaymentRaw.value = sum;
+      repayment.value = await DatabaseHelper.instance.queryAllRowsCollected();
+      isDone = true;
+      DialogManager.hideLoading();
+    } catch (e) {
+      ExceptionHandler.handleException(e);
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  void deleteRepay(int id) async {
+    DatabaseHelper.instance.DeleteCollectedByID(id);
+    await fetchpaymentList();
+    DialogManager.showDialog(
+      title: LocaleKeys.deletedsuccess.tr,
+      subTitle: LocaleKeys.yousuccessfuldeletedata.tr,
+      onPressed: () async {
+        Get.back();
+      },
+    );
+  }
+
+  void reverseRepay(int id) async {
+    try {
+      final Map<String, dynamic> params = {'id': id};
+      var response = await Get.find<ApiService>().get(
+        EndPoints.reverse,
+        queryParameters: params,
+        isShowLoading: true,
+      );
+      if (response.data['message'] == 'Successfully Saved') {
+        await DatabaseHelper.instance.DeleteCollectedByID(id);
+        await fetchpaymentList();
+        DialogManager.showDialog(
+          title: LocaleKeys.reversedsuccess.tr,
+          subTitle: LocaleKeys.yousucessfulreversedata.tr,
+          onPressed: () async {
+            Get.back();
+          },
+        );
+      } else {
+        await fetchpaymentList();
+        DialogManager.showDialog(
+          title: LocaleKeys.failed.tr,
+          subTitle: LocaleKeys.youfailedtoreversedata.tr,
+          onPressed: () async {
+            Get.back();
+          },
+        );
+      }
+    } catch (e) {
+      await fetchpaymentList();
+      DialogManager.showDialog(
+        title: LocaleKeys.reversedsuccess.tr,
+        subTitle: LocaleKeys.yousucessfulreversedata.tr,
+        onPressed: () async {
+          Get.back();
+        },
+      );
+    }
+  }
+
+  void switchTab(String tab) {
+    selectedTab.value = tab;
+    if (tab == 'paylist' && !_paylistFetched) {
+      fetchpaymentListFromApi();
+    }
+    // else if (tab == 'repayment' && !_repaymentFetched) {
+    //   fetchBmRepaymentList();
+    // }
+  }
+
+  Future<void> fetchpaymentListFromApi() async {
+    try {
+      isLoading.value = true;
+      final int? branchId = await getbranchId();
+      final int? userId = await getUserId();
+      final res = await Get.find<ApiService>().get(
+        EndPoints.payment,
+        queryParameters: {'branch_id': branchId, 'user_id': userId},
+        isShowLoading: false,
+      );
+      final data = getPropertyFromJson(res.data, 'data');
+      repayment.value = List.from(
+        (data as List).map((e) => PaymentModel.fromJson(e)),
+      );
+
+      final collected = repayment.value.fold(
+        0.0,
+        (prev, e) => prev + e.amount_khr,
+      );
+      collectedSumRaw.value = collected;
+      collectedClients.value = repayment.value.length;
+
+      final rawTotal =
+          double.tryParse(
+            (getPropertyFromJson(res.data, 'totalAmount') ?? '0').toString(),
+          ) ??
+          0.0;
+      totalRepaymentRaw.value = rawTotal;
+
+      totalClient.text =
+          (getPropertyFromJson(res.data, 'totalClient') ?? '0').toString();
+      totalAmount.text = formatCurrency(rawTotal.toString());
+
+      isDone = true;
+      _paylistFetched = true;
+    } catch (e) {
+      ExceptionHandler.handleException(e);
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  // Future<void> fetchBmRepaymentList() async {
+  //   try {
+  //     isRepaymentLoading.value = true;
+  //     final int? branchId = await getbranchId();
+  //     final int? userId = await getUserId();
+  //     final res = await Get.find<ApiService>().get(
+  //       EndPoints.repayment,
+  //       queryParameters: {'branch_id': branchId, 'user_id': userId},
+  //       isShowLoading: false,
+  //     );
+  //     final data = getPropertyFromJson(res.data, 'data');
+  //     bmRepaymentList.value = List.from(
+  //       (data as List).map((e) => RepaymentModel.fromJson(e)),
+  //     );
+  //     _repaymentFetched = true;
+  //   } catch (e) {
+  //     ExceptionHandler.handleException(e);
+  //   } finally {
+  //     isRepaymentLoading.value = false;
+  //   }
+  // }
+}
