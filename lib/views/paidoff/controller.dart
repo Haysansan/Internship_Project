@@ -104,6 +104,7 @@ class PaidOffController extends GetxController {
     selectedOfficer.value = name;
     filteredGroups.value =
         name == null ? [] : coGroups.where((g) => g.coName == name).toList();
+    fetchRepayment(isRefresh: true, isFilter: true);
   }
 
   Future<void> fetchRepayment({
@@ -130,9 +131,17 @@ class PaidOffController extends GetxController {
         isLoading.value = true;
       }
 
+      final int? staffId =
+          selectedOfficer.value == null
+              ? null
+              : coGroups
+                  .firstWhereOrNull((g) => g.coName == selectedOfficer.value)
+                  ?.coId;
+
       final Map<String, dynamic> params = {
         'branch_id': branchId,
         'user_id': user_id,
+        if (staffId != null) 'staff_id': staffId,
       };
 
       String endPoint = EndPoints.PaidLoan;

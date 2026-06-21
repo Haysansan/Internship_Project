@@ -7,6 +7,7 @@ class ClientCollectionSummary {
     required this.overdueClients,
     required this.activeClients,
     required this.overdueAmount,
+    required this.principal,
     required this.totalOutstanding,
     required this.paidClients,
     required this.repayDue,
@@ -18,6 +19,7 @@ class ClientCollectionSummary {
   final int overdueClients;
   final int activeClients;
   final String overdueAmount;
+  final String principal;
   final String totalOutstanding;
 
   // Card 2 — Collection

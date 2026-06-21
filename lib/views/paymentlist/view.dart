@@ -149,22 +149,21 @@ class _BmList extends StatelessWidget {
           return const Center(child: CircularProgressIndicator());
         }
 
-        if (controller.repayment.isEmpty) {
+        final items = controller.displayedItems;
+        if (items.isEmpty) {
           return NoDataWidget(text: LocaleKeys.searchNotFound.tr);
         }
 
-        return AbsorbPointer(
-          child: ListView.builder(
-            padding: UIConstants.spacing.padHorizontal,
-            itemCount: controller.repayment.length,
-            itemBuilder:
-                (ctx, i) => CustomTimeLinesWidget(
-                  isFirst: i == 0,
-                  isLast: i == controller.repayment.length - 1,
-                  tracking: controller.repayment[i],
-                  controller: controller,
-                ),
-          ),
+        return ListView.builder(
+          padding: UIConstants.spacing.padHorizontal,
+          itemCount: items.length,
+          itemBuilder:
+              (ctx, i) => CustomTimeLinesWidget(
+                isFirst: i == 0,
+                isLast: i == items.length - 1,
+                tracking: items[i],
+                controller: controller,
+              ),
         );
       }),
     );

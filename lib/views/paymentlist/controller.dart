@@ -77,6 +77,13 @@ class PaymentListController extends GetxController {
         name == null ? [] : coGroups.where((g) => g.coName == name).toList();
   }
 
+  List<PaymentModel> get displayedItems =>
+      selectedOfficer.value == null
+          ? repayment
+          : repayment
+              .where((m) => m.loan_officer == selectedOfficer.value)
+              .toList();
+
   int customerCount = 0;
   Future<void> _countCustomers() async {
     customerCount = await DatabaseHelper.instance.countCustomersCollection();
