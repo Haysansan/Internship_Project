@@ -122,7 +122,10 @@ class ArrearSheet extends StatelessWidget {
 
             PrimaryButton(
               text: LocaleKeys.confirmation.tr,
-              onPressed: submitBooking,
+              onPressed:
+                  UserRepository.shared.isBM || UserRepository.shared.isEco
+                      ? null
+                      : submitBooking,
             ),
             UIConstants.spacing.height,
           ],

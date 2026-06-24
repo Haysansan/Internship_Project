@@ -178,7 +178,9 @@ class _COCard extends StatelessWidget {
               height: 36,
               child: ElevatedButton(
                 onPressed:
-                    c.isReceiving.value ? null : () => c.receiveGroup(group),
+                    c.isReceiving.value || UserRepository.shared.isEco
+                        ? null
+                        : () => c.receiveGroup(group),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColor.primary,
                   shape: RoundedRectangleBorder(
