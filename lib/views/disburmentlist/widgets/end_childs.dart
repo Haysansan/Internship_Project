@@ -13,7 +13,7 @@ class EndsChildWidget extends StatelessWidget {
     return NumberFormat.currency(
       locale: 'en_US',
       symbol: '',
-    ).format(double.parse(amount)).replaceAll('.00', '');
+    ).format(double.tryParse(amount) ?? 0).replaceAll('.00', '');
   }
 
   Color _statusColor(String status) {

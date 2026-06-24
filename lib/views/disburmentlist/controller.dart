@@ -43,7 +43,8 @@ class DisburmentListController extends GetxController {
   }
 
   String formatCurrency(String amount) {
-    return '${NumberFormat.currency(locale: 'en_US', symbol: '').format(double.parse(amount))}'
+    return NumberFormat.currency(locale: 'en_US', symbol: '')
+        .format(double.tryParse(amount) ?? 0)
         .replaceAll('.00', ' រៀល');
   }
 
@@ -77,6 +78,7 @@ class DisburmentListController extends GetxController {
 
   void clearFilter() {
     searchCtl.text = '';
+    selectedOfficer.value = null;
   }
 
   void toggleSearch() {
@@ -113,7 +115,6 @@ class DisburmentListController extends GetxController {
               .toList()
               .reversed
               .toList();
-      disburment.value = _allItems;
 
       coNames.value =
           _allItems
@@ -123,6 +124,13 @@ class DisburmentListController extends GetxController {
               .cast<String>()
               .toList()
             ..sort();
+
+      disburment.value =
+          selectedOfficer.value == null
+              ? _allItems
+              : _allItems
+                  .where((e) => e.loan_officer == selectedOfficer.value)
+                  .toList();
 
       totalClient.text =
           getPropertyFromJson(res.data, 'totalClient')?.toString() ?? '0';

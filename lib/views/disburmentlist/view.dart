@@ -52,9 +52,11 @@ class DisburmentListView extends GetView<DisburmentListController> {
             else
               _FilterSection(),
             UIConstants.spacing.height,
-            _DisbursementList(
-              items: controller.disburment,
-              isDone: controller.isDone,
+            Obx(
+              () => _DisbursementList(
+                items: controller.disburment.toList(),
+                isDone: controller.isDone,
+              ),
             ),
           ],
         );
