@@ -153,6 +153,9 @@ class DashboardWidget extends StatelessWidget {
   void WrittenOffHandleTap() {
     Get.back();
     Get.toNamed(Routes.writtenoff);
+    if (Get.isRegistered<WrittenoffController>()) {
+      Get.find<WrittenoffController>().fetchDelivery(isRefresh: true);
+    }
   }
 
   void PrePaidHandleTap() {

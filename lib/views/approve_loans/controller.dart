@@ -145,6 +145,15 @@ class ApproveLoansController extends GetxController {
       _verifySnapshot = List.of(verifyLoans);
       _disbursementSnapshot = List.of(disbursementLoans);
       _allSnapshot = List.of(allLoans);
+
+      // Land on whichever actionable tab actually has items, instead of
+      // always defaulting to Verify (which may be empty while Disburse
+      // has the pending items the dashboard badge counted).
+      if (verifyLoans.isEmpty && disbursementLoans.isNotEmpty) {
+        selectedTab.value = 2;
+      } else if (verifyLoans.isNotEmpty) {
+        selectedTab.value = 1;
+      }
     } else if (isCEO) {
       acceptLoans.value = all.where((l) => _status(l) == 'pending').toList();
 

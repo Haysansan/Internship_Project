@@ -86,19 +86,22 @@ class DisburmentListController extends GetxController {
       filterByName();
     }
   }
+  Future<String?> _getPermission() async =>
+      await SharedPreferencesManager.get('permission');
 
   Future<void> fetchDisburmentList() async {
     try {
       isLoading.value = true;
       final userId = await _getUserId();
       final branchId = await _getBranchId();
+      final permission = await _getPermission();
 
       final res = await Get.find<ApiService>().get(
         EndPoints.disbursement,
         queryParameters: {
           'branch_id': branchId,
           'user_id': userId,
-          if (isBmOrCeo) 'permission': 'co',
+          'permission': permission,
         },
         isShowLoading: true,
       );
@@ -134,4 +137,5 @@ class DisburmentListController extends GetxController {
       isLoading.value = false;
     }
   }
+  
 }

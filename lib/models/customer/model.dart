@@ -11,6 +11,7 @@ class ClientModel {
   final String external_id;
   final String email;
   final String photo;
+  final String id_card_photo;
   final String address;
   final String name;
 
@@ -27,6 +28,7 @@ class ClientModel {
     required this.external_id,
     required this.email,
     required this.photo,
+    required this.id_card_photo,
     required this.address,
     required this.name,
   });
@@ -53,6 +55,7 @@ class ClientModel {
       external_id: json["external_id"]?.toString() ?? 'N/A',
       email: json["email"]?.toString() ?? 'N/A',
       photo: json["photo"]?.toString() ?? '',
+      id_card_photo: json["id_card_photo"]?.toString() ?? '',
       address:
           json["villages_name"]?.toString() ??
           json["address"]?.toString() ??

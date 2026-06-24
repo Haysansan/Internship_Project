@@ -38,16 +38,27 @@ class ArrearLoanView extends GetView<ArrearLoanController> {
                             LocaleKeys.choosestaff.tr,
                             style: AppTextStyle.normalPrimaryRegular,
                           ),
-                          SearchDropDown<StaffModel>(
-                            items: controller.StaffList,
-                            itemAsString:
-                                (item) =>
-                                    '${item.id} - ${item.name}', // Convert StaffModel to String
-                            onChanged: (value) {
-                              controller.onClientChanged(value as StaffModel?);
-                            },
-                            selectedItem: controller.StaffSelected,
-                          ),
+                          UserRepository.shared.isCO
+                              ? AbsorbPointer(
+                                child: CustomTextField(
+                                  controller: TextEditingController(
+                                    text: controller.loggedUserName.value,
+                                  ),
+                                  hintText: '',
+                                ),
+                              )
+                              : SearchDropDown<StaffModel>(
+                                items: controller.StaffList,
+                                itemAsString:
+                                    (item) =>
+                                        '${item.id} - ${item.name}', // Convert StaffModel to String
+                                onChanged: (value) {
+                                  controller.onClientChanged(
+                                    value as StaffModel?,
+                                  );
+                                },
+                                selectedItem: controller.StaffSelected,
+                              ),
                           UIConstants.spacing.height,
 
                           Text(

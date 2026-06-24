@@ -19,7 +19,7 @@ class ArrearLoanController extends GetxController {
   bool isDone = false;
   final RxBool isLoadings = false.obs;
   final RxBool isLoading = false.obs;
-
+  final RxString loggedUserName = ''.obs;
   final TextEditingController dateCtl = TextEditingController();
 
   List<StaffModel> StaffList = [];
@@ -28,10 +28,14 @@ class ArrearLoanController extends GetxController {
   @override
   void onInit() async {
     await fetchUser();
+    _loadUserAndClients();
     // await fetchArrear(isRefresh: true);
     super.onInit();
   }
-
+  Future<void> _loadUserAndClients() async {
+    final name = await SharedPreferencesManager.get('name');
+    loggedUserName.value = name as String? ?? '';
+  }
   Future<int?> getbranchId() async {
     int? branchId = await SharedPreferencesManager.getIntValue('branch_id');
     return branchId;
@@ -42,8 +46,9 @@ class ArrearLoanController extends GetxController {
     return user_id;
   }
 
-  final StartController startCtl = Get.find<StartController>();
+ 
 
+  final StartController startCtl = Get.find<StartController>();
   Future<int?> _resolveStaffId() async {
     if (UserRepository.shared.isCO) {
       return getUserId();
@@ -63,12 +68,15 @@ class ArrearLoanController extends GetxController {
       if ((!isRefresh && !isLoadMore) || isFilter) {
         isLoadings.value = true;
       }
+      Future<String?> _getPermission() async =>
+      await SharedPreferencesManager.get('permission');
+       final String? permission = await _getPermission();
 
       if (startCtl.selectedIndex.value != 3 && isLoadMore) return;
 
       final response = await Get.find<ApiService>().get(
         EndPoints.arrearLoan,
-        queryParameters: {'staff_id': staffId, 'date': dateCtl.text},
+        queryParameters: {'user_id': staffId, 'date': dateCtl.text,'permission':permission},
       );
 
       final List<dynamic> data = response.data['data'] ?? [];

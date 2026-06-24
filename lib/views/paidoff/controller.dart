@@ -102,8 +102,6 @@ class PaidOffController extends GetxController {
 
   void filterByOfficer(String? name) {
     selectedOfficer.value = name;
-    filteredGroups.value =
-        name == null ? [] : coGroups.where((g) => g.coName == name).toList();
     fetchRepayment(isRefresh: true, isFilter: true);
   }
 
@@ -114,6 +112,7 @@ class PaidOffController extends GetxController {
   }) async {
     int? branchId = await getBranchId();
     int? user_id = await getUserId();
+    final permission = await _getPermission();
     try {
       if (isRefresh) {
         if (!isFilter) {
@@ -131,17 +130,10 @@ class PaidOffController extends GetxController {
         isLoading.value = true;
       }
 
-      final int? staffId =
-          selectedOfficer.value == null
-              ? null
-              : coGroups
-                  .firstWhereOrNull((g) => g.coName == selectedOfficer.value)
-                  ?.coId;
-
       final Map<String, dynamic> params = {
         'branch_id': branchId,
         'user_id': user_id,
-        if (staffId != null) 'staff_id': staffId,
+        'permission': permission,
       };
 
       String endPoint = EndPoints.PaidLoan;
@@ -151,27 +143,6 @@ class PaidOffController extends GetxController {
         queryParameters: params,
         isShowLoading: false,
       );
-
-      final List users = res.data['users'] ?? [];
-      coNames.value =
-          users
-              .map((u) => u['full_name']?.toString() ?? '')
-              .where((name) => name.isNotEmpty)
-              .toSet()
-              .cast<String>()
-              .toList();
-      //grouped filtering
-      coGroups.value =
-          users
-              .map(
-                (u) => CoRepaymentGroup(
-                  coId: u['id'] as int? ?? 0,
-                  coName: u['full_name']?.toString() ?? '',
-                  amount: 0,
-                ),
-              )
-              .where((g) => g.coName.isNotEmpty)
-              .toList();
 
       // Take care of load more error when while load more user switch the tap
       if (startCtl.selectedIndex.value != 3 && isLoadMore) {
@@ -187,9 +158,26 @@ class PaidOffController extends GetxController {
       // is sent), so there's never a next page to load.
       pagination.isEndOfPage = true;
 
-      repaymentModels.value = List<PaidOffModel>.from(
+      final fetched = List<PaidOffModel>.from(
         (data as List).map((e) => PaidOffModel.fromJson(e)).toList(),
       );
+
+      coNames.value =
+          fetched
+              .map((e) => e.loan_officer)
+              .where((name) => name.isNotEmpty && name != 'N/A')
+              .toSet()
+              .cast<String>()
+              .toList()
+            ..sort();
+
+      repaymentModels.value =
+          selectedOfficer.value == null
+              ? fetched
+              : fetched
+                  .where((e) => e.loan_officer == selectedOfficer.value)
+                  .toList();
+
       totalClient.text =
           repaymentModels.map((e) => e.client_id).toSet().length.toString();
     } catch (e) {
@@ -239,6 +227,7 @@ class PaidOffController extends GetxController {
 
   void clearFilter() {
     searchCtl.text = '';
+    selectedOfficer.value = null;
   }
 
   void toggleSearch() {

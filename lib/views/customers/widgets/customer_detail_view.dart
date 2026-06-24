@@ -21,6 +21,8 @@ class CustomerDetailView extends StatelessWidget {
         children: [
           _Header(client: client),
           16.height,
+          _IdCardSection(client: client),
+          16.height,
           _InfoSection(
             title: 'Personal Information',
             rows: [
@@ -113,6 +115,58 @@ class _Header extends StatelessWidget {
                   style: AppTextStyle.normalGreyRegular,
                 ),
               ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _IdCardSection extends StatelessWidget {
+  const _IdCardSection({required this.client});
+
+  final ClientModel client;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColor.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: AppColor.black.withValues(alpha: 0.06),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('ID Card Photo', style: AppTextStyle.normalPrimaryBold),
+          12.height,
+          ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              width: double.infinity,
+              height: 180,
+              color: AppColor.softPink,
+              child:
+                  client.id_card_photo.isNotEmpty
+                      ? CustomNetworkImage(
+                        imageUrl: client.id_card_photo,
+                        width: double.infinity,
+                        height: 180,
+                        fit: BoxFit.cover,
+                      )
+                      : const Icon(
+                        Icons.badge,
+                        size: 48,
+                        color: AppColor.primary,
+                      ),
             ),
           ),
         ],
