@@ -1,5 +1,4 @@
 import 'package:apploan/core/offline/database_helper.dart';
-import 'package:dio/dio.dart' as dio;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
@@ -35,36 +34,7 @@ class PaidOffSheet extends StatelessWidget {
     try {
       final userId = await getUserId();
 
-      try {
-        await DatabaseHelper.instance.insertCollected({
-          'id': paidoff.id,
-          'client': paidoff.client,
-          'loan_officer': userId,
-          'created_by_id': userId,
-          'branch': paidoff.branch,
-          'client_id': paidoff.client_id,
-          'loan_id': paidoff.loan_id,
-          'client_code': paidoff.client_code,
-          'photo': paidoff.photo,
-          'total_repayment': rawAmount,
-          'amount_penalty': totalPenaltyCtl.text,
-          'currency_id': 2,
-          'description': 'Post Repayment',
-          'gateway_id': 1,
-          'status_pay': 'មិនទាន់អនុម័ត',
-          'submitted_on': DateFormat('yyyy-MM-dd').format(DateTime.now()),
-          'syncedate': DateFormat('yyyy-MM-dd').format(DateTime.now()),
-          'synced': '0',
-        });
-      } catch (e) {
-        DialogManager.showDialog(
-          title: LocaleKeys.error.tr,
-          subTitle: 'អតិថិជនមិនផ្ដាច់បានទេ សូមធ្វើការផ្ទេរទិន្នន័យទៅប្រព័ន្ធជាមុនសិន',
-        );
-        return;
-      }
-
-      final formData = dio.FormData.fromMap({
+      await DatabaseHelper.instance.insertCollected({
         'id': paidoff.id,
         'client': paidoff.client,
         'loan_officer': userId,
@@ -74,19 +44,52 @@ class PaidOffSheet extends StatelessWidget {
         'loan_id': paidoff.loan_id,
         'client_code': paidoff.client_code,
         'photo': paidoff.photo,
-        'amount': rawAmount,
+        'total_repayment': rawAmount,
         'amount_penalty': totalPenaltyCtl.text,
         'currency_id': 2,
         'description': 'Post Repayment',
         'gateway_id': 1,
+        'status_pay': 'មិនទាន់ផ្ទេរ',
+        'submitted_on': DateFormat('yyyy-MM-dd').format(DateTime.now()),
+        'syncedate': DateFormat('yyyy-MM-dd').format(DateTime.now()),
+        'synced': '0',
       });
-      await Get.find<ApiService>().post(
-        EndPoints.repaymentStore,
-        formData,
-        isShowLoading: true,
-      );
 
-      startCtl.fetchRepaymentSearch();
+      final index = startCtl.repaymentModels.indexWhere(
+        (e) => e.loan_id == paidoff.loan_id,
+      );
+      if (index != -1) {
+        final u = startCtl.repaymentModels[index];
+        startCtl.repaymentModels[index] = PaidOffModel(
+          id: u.id,
+          client: u.client,
+          loan_officer: u.loan_officer,
+          branch: u.branch,
+          client_id: u.client_id,
+          loan_id: u.loan_id,
+          mobile: u.mobile,
+          client_code: u.client_code,
+          account_number: u.account_number,
+          cycle: u.cycle,
+          loan_term: u.loan_term,
+          photo: u.photo,
+          principal: u.principal,
+          disburmentAmt: u.disburmentAmt,
+          end_pricipal: u.end_pricipal,
+          interest: u.interest,
+          monthly_fee: u.monthly_fee,
+          penalty: u.penalty,
+          villages_name: u.villages_name,
+          last_payment_date: u.last_payment_date,
+          total_repayment:
+              (double.parse(u.total_repayment) - rawAmount).toString(),
+          arrea: u.arrea,
+          total_toclose: u.total_toclose,
+          syncedate: u.syncedate,
+          synced: u.synced,
+        );
+      }
+
       DialogManager.showDialog(
         title: LocaleKeys.successfully.tr,
         subTitle: LocaleKeys.youHaveSuccessfullyCreated.tr,

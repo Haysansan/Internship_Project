@@ -68,5 +68,9 @@ class EndPoints {
   static String get repaymentPending => 'repayment_loan/approval-payment';
   static String get repaymentReceive => 'loan';
 
+  // TODO: placeholder path — backend hasn't built this endpoint yet.
+  // Swap in the real path once available (CEO -> BM cash transfer).
+  static String get cashTransferToBM => 'cash_transfer/store';
+
   static String rejectLoan(String loanId) => 'loan/$loanId/reject_loan';
 }

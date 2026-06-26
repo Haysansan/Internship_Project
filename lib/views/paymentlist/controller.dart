@@ -84,6 +84,17 @@ class PaymentListController extends GetxController {
               .where((m) => m.loan_officer == selectedOfficer.value)
               .toList();
 
+  double get displayedCollectedSum =>
+      displayedItems.fold(0.0, (sum, e) => sum + e.amount_khr);
+
+  /// The individual local rows ("steps") that [groupedRepayment] combined
+  /// into one display row for [loanId], e.g. a loan paid 5000 then 3000.
+  List<PaymentModel> stepsForLoan(String loanId) =>
+      repayment.where((e) => e.loan_id == loanId).toList();
+
+  int get displayedCollectedClients =>
+      displayedItems.map((e) => e.client_id).toSet().length;
+
   /// All local rows for the same loan (regardless of sync state) are
   /// consolidated into one display row per loan, so a loan paid in several
   /// steps (e.g. 5000 then 3000, possibly transferred in between) shows as

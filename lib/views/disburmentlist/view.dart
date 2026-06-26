@@ -81,12 +81,11 @@ class _SummarySection extends StatelessWidget {
         );
       }
 
-      final totalClients = int.tryParse(c.totalClient.text) ?? 0;
-      final totalAmount =
-          double.tryParse(
-            c.totalAmount.text.replaceAll(',', '').replaceAll('រៀល', ''),
-          ) ??
-          40;
+      final totalClients = c.disburment.length;
+      final totalAmount = c.disburment.fold<double>(
+        0.0,
+        (sum, m) => sum + (double.tryParse(m.principal) ?? 0),
+      );
       final pendingApprovalCount =
           c.disburment
               .where((m) => m.loan_status.toLowerCase().contains('waiting'))

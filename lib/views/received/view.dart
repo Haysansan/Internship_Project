@@ -59,8 +59,8 @@ class _SummarySection extends StatelessWidget {
                 '${c.receivedPercentage.toStringAsFixed(0)}% Received of Transfer',
             left: GlassStatItem(
               label: 'Total Transfer',
-              value: '៛${NumberFormat('#,##0').format(c.totalTransferKhr.value)}',
-              count: '${c.totalCOs.value} staff',
+              value: '៛${NumberFormat('#,##0').format(c.displayedTotalKhr)}',
+              count: '${c.displayedCOCount} staff',
             ),
             right: GlassStatItem(
               label: 'Amount Received',
@@ -80,6 +80,9 @@ class _FilterSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = Get.find<ReceivedController>();
+    final isCEO = UserRepository.shared.isEco;
+    final filterLabel = isCEO ? 'Filter by BM' : 'Filter by CO';
+    final searchLabel = isCEO ? 'Search for BM' : 'Search for CO';
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Column(
@@ -88,7 +91,7 @@ class _FilterSection extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Filter by CO', style: AppTextStyle.normalPrimaryBold),
+              Text(filterLabel, style: AppTextStyle.normalPrimaryBold),
               Obx(() {
                 if (c.selectedOfficer.value == null) return const SizedBox();
                 return GestureDetector(
@@ -105,7 +108,7 @@ class _FilterSection extends StatelessWidget {
               itemAsString: (item) => item,
               onChanged: c.filterByOfficer,
               selectedItem: c.selectedOfficer.value,
-              label: 'Search for CO',
+              label: searchLabel,
             ),
           ),
         ],

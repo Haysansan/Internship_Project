@@ -34,8 +34,14 @@ class PaymentCollectionView extends GetView<PaymentListController> {
           UIConstants.midSpacing.height,
           Obx(() {
             final repayCtl = Get.find<RepaymentController>();
-            final collected = controller.collectedSumRaw.value;
-            final uncollectedItems = repayCtl.repaymentModel;
+            final selectedOfficer = controller.selectedOfficer.value;
+            final collected = controller.displayedCollectedSum;
+            final uncollectedItems =
+                selectedOfficer == null
+                    ? repayCtl.repaymentModel
+                    : repayCtl.repaymentModel
+                        .where((e) => e.loan_officer == selectedOfficer)
+                        .toList();
             final uncollected = uncollectedItems.fold<double>(
               0.0,
               (sum, e) => sum + (double.tryParse(e.total_repayment) ?? 0),
@@ -68,7 +74,7 @@ class PaymentCollectionView extends GetView<PaymentListController> {
                   left: GlassStatItem(
                     label: LocaleKeys.collected.tr,
                     value: '៛${NumberFormat('#,##0').format(collected)}',
-                    count: '${controller.collectedClients.value} paid',
+                    count: '${controller.displayedCollectedClients} paid',
                   ),
                   right: GlassStatItem(
                     label: LocaleKeys.unCollected.tr,

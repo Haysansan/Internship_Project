@@ -33,20 +33,93 @@ class TransferDataController extends GetxController {
 
   final StartController startCtl = Get.find<StartController>();
 
+  // ─── CEO -> BM cash transfer ───
+  final GlobalKey<FormState> cashTransferFormKey = GlobalKey<FormState>();
+  final RxList<StaffModel> bmList = <StaffModel>[].obs;
+  final Rx<StaffModel?> selectedBM = Rx<StaffModel?>(null);
+  final TextEditingController cashAmountCtl = TextEditingController();
+  final TextEditingController cashNoteCtl = TextEditingController();
+  final RxBool isSubmittingCashTransfer = false.obs;
+
   @override
   void onInit() {
     // _countCustomers();
     // _calculateSum();
     _loadSummary();
+    if (UserRepository.shared.isEco) {
+      fetchBmList();
+    }
     super.onInit();
     // Any initialization code can go here
   }
 
   @override
   void onClose() {
+    cashAmountCtl.dispose();
+    cashNoteCtl.dispose();
     super.onClose();
 
     // Any cleanup code can go here
+  }
+
+  Future<void> fetchBmList() async {
+    final branchId = await getbranchId();
+    try {
+      final res = await Get.find<ApiService>().get(
+        EndPoints.getStaff,
+        queryParameters: {'branch_id': branchId},
+      );
+      final data = getPropertyFromJson(res.data, 'data');
+      bmList.value = List<StaffModel>.from(
+        ((data as List?) ?? []).map((e) => StaffModel.fromJson(e)),
+      );
+    } catch (e) {
+      ExceptionHandler.handleException(e);
+    }
+  }
+
+  void onBmChanged(StaffModel? bm) {
+    selectedBM.value = bm;
+  }
+
+  Future<void> submitCashTransferToBM() async {
+    if (!cashTransferFormKey.currentState!.validate()) return;
+    if (selectedBM.value == null) {
+      DialogManager.showDialog(
+        title: LocaleKeys.error.tr,
+        subTitle: 'Please select a BM to transfer to.',
+      );
+      return;
+    }
+
+    try {
+      isSubmittingCashTransfer.value = true;
+      final branchId = await getbranchId();
+      final userId = await getUserId();
+      final amount = double.parse(cashAmountCtl.text.replaceAll(',', ''));
+
+      await Get.find<ApiService>().post(EndPoints.cashTransferToBM, {
+        'branch_id': branchId,
+        'created_by_id': userId,
+        'bm_id': selectedBM.value!.id,
+        'amount': amount,
+        'description': cashNoteCtl.text,
+      }, isShowLoading: true);
+
+      cashAmountCtl.clear();
+      cashNoteCtl.clear();
+      selectedBM.value = null;
+
+      DialogManager.showDialog(
+        title: LocaleKeys.successfully.tr,
+        subTitle: 'Cash transfer sent to BM.',
+        onPressed: () => Get.back(),
+      );
+    } catch (e) {
+      ExceptionHandler.handleException(e);
+    } finally {
+      isSubmittingCashTransfer.value = false;
+    }
   }
 
   void goToTab(int index) {

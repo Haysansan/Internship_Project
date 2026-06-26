@@ -240,6 +240,12 @@ class ReceivedController extends GetxController {
   List<CoRepaymentGroup> get displayedGroups =>
       selectedOfficer.value == null ? coGroups : filteredGroups;
 
+  double get displayedTotalKhr =>
+      displayedGroups.fold(0.0, (sum, g) => sum + g.amount);
+
+  int get displayedCOCount =>
+      selectedOfficer.value == null ? totalCOs.value : displayedGroups.length;
+
   Future<void> receiveGroup(CoRepaymentGroup group) async {
     isReceiving.value = true;
     try {

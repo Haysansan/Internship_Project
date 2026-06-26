@@ -85,8 +85,12 @@ class DashboardWidget extends StatelessWidget {
     // Icon(Icons.approval,color: Colors.white,size: 30),
   ];
 
-  // BM / CEO only see these key indices
-  static const _bmCeoIndices = [0, 1, 2, 3, 4, 5, 6, 7, 9];
+  // BM only sees these key indices (keeps Sync Data, no Cash Transfer)
+  static const _bmIndices = [0, 1, 2, 3, 4, 5, 6, 7, 9];
+
+  // CEO sees the same set as BM, but with Sync Data swapped out for Cash
+  // Transfer (index 8) instead of index 4 (datasync).
+  static const _ceoIndices = [0, 1, 2, 3, 5, 6, 7, 8, 9];
 
   (
     List catNames,
@@ -97,12 +101,21 @@ class DashboardWidget extends StatelessWidget {
   _buildFilteredLists() {
     final user = UserRepository.shared;
 
-    // BM or CEO:
-    if (user.isBM || user.isEco) {
-      final names = _bmCeoIndices.map((i) => catName[i]).toList();
-      final colors = _bmCeoIndices.map((i) => catColors[i]).toList();
-      final paths = _bmCeoIndices.map((i) => catIconPaths[i]).toList();
-      final sizes = _bmCeoIndices.map((i) => catIconBaseSizes[i]).toList();
+    // CEO:
+    if (user.isEco) {
+      final names = _ceoIndices.map((i) => catName[i]).toList();
+      final colors = _ceoIndices.map((i) => catColors[i]).toList();
+      final paths = _ceoIndices.map((i) => catIconPaths[i]).toList();
+      final sizes = _ceoIndices.map((i) => catIconBaseSizes[i]).toList();
+      return (names, colors, paths, sizes);
+    }
+
+    // BM:
+    if (user.isBM) {
+      final names = _bmIndices.map((i) => catName[i]).toList();
+      final colors = _bmIndices.map((i) => catColors[i]).toList();
+      final paths = _bmIndices.map((i) => catIconPaths[i]).toList();
+      final sizes = _bmIndices.map((i) => catIconBaseSizes[i]).toList();
       return (names, colors, paths, sizes);
     }
 
@@ -181,6 +194,10 @@ class DashboardWidget extends StatelessWidget {
 
   void Approval() {
     Get.back();
+    // ApproveLoansController is registered permanent in StartBinding, so the
+    // route's own lazyPut never re-creates it — refetch explicitly here or
+    // this screen would keep showing whatever it loaded right after login.
+    Get.find<ApproveLoansController>().fetchLoans();
     Get.toNamed(Routes.approveLoans)?.then((_) {
       // Refresh badge count when user comes back
       Get.find<DashboardController>().fetchPendingApprovalCount();

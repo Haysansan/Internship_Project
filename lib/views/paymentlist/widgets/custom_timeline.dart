@@ -3,6 +3,7 @@ import 'package:timeline_tile/timeline_tile.dart';
 import 'package:apploan/core/core.dart';
 import 'package:apploan/models/models.dart';
 import 'package:apploan/views/paymentlist/widgets/end_child.dart';
+import 'package:apploan/views/paymentlist/widgets/payment_steps_sheet.dart';
 
 import '../controller.dart';
 
@@ -36,7 +37,15 @@ class CustomTimeLinesWidget extends StatelessWidget {
           color: AppColor.white,
         ),
       ),
-      endChild: EndChildsWidget(tracking: tracking,controller:controller ,),
+      endChild: GestureDetector(
+        onTap:
+            () => BottomSheetManager.custom(
+              content: PaymentStepsSheet(
+                steps: controller.stepsForLoan(tracking.loan_id),
+              ),
+            ),
+        child: EndChildsWidget(tracking: tracking, controller: controller),
+      ),
     );
   }
 }
