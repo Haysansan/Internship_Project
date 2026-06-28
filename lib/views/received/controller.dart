@@ -223,11 +223,16 @@ class ReceivedController extends GetxController {
           final page = getPropertyFromJson(res.data, 'data') ?? [];
           data.addAll(page);
           hasMore = getPropertyFromJson(res.data, 'hasMore') == true;
-          skip =
-              int.tryParse(
-                getPropertyFromJson(res.data, 'nextSkip')?.toString() ?? '',
-              ) ??
-              skip;
+          final nextSkip = int.tryParse(
+            getPropertyFromJson(res.data, 'nextSkip')?.toString() ?? '',
+          );
+
+          // If the server didn't actually advance the cursor, stop instead
+          // of re-fetching (and re-merging) the same page forever — that
+          // previously inflated the CEO's BM-receive totals with duplicates.
+          if (nextSkip == null || nextSkip <= skip) break;
+          skip = nextSkip;
+
           if (page.isEmpty) break;
         }
       } else {
@@ -242,6 +247,14 @@ class ReceivedController extends GetxController {
         );
         data.addAll(getPropertyFromJson(response.data, 'data') ?? []);
       }
+
+      // Defensive dedupe in case the server re-sends the same loan on
+      // overlapping pages.
+      final seenLoanIds = <String>{};
+      data.retainWhere((e) {
+        final loanId = e['loan_id']?.toString() ?? '';
+        return loanId.isEmpty || seenLoanIds.add(loanId);
+      });
 
       // CEO receives cash from BMs, BM receives cash from COs — the id
       // key differs per role but the record shape is otherwise the same.
@@ -287,6 +300,7 @@ class ReceivedController extends GetxController {
                   coName: name,
                   amount: amount,
                   loanIds: loanIds,
+                  items: records.map((e) => PaymentModel.fromJson(e)).toList(),
                 );
               })
               .where((g) => g.amount > 0)

@@ -172,6 +172,19 @@ class _COCard extends StatelessWidget {
                   '${c.formatKhr(group.amount)} ៛',
                   style: AppTextStyle.normalRedBold,
                 ),
+                const SizedBox(height: 4),
+                GestureDetector(
+                  onTap:
+                      () => BottomSheetManager.custom(
+                        content: ReceivedDetailSheet(group: group),
+                      ),
+                  child: Text(
+                    'View Detail',
+                    style: AppTextStyle.normalRedBold.copyWith(
+                      decoration: TextDecoration.underline,
+                    ),
+                  ),
+                ),
               ],
             ),
           ),

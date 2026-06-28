@@ -81,6 +81,8 @@ class EndPoints {
   static String get cashCeoReceiveFromBM =>
       'report/loan/cashCeoReceiveFromBM';
 
+  static String get cashSummaryByBM => 'report/loan/cashSummaryByBM';
+
   // TODO: placeholder path — backend hasn't built this endpoint yet
   // (every variant tried 404s). Swap in the real path once available.
   static String get cashTransferCoStore => 'report/loan/cash_transfer_co_store';

@@ -85,10 +85,7 @@ class DashboardController extends GetxController {
   }
 
   Future<void> _initSummary() async {
-    final branchId = await SharedPreferencesManager.getIntValue('branch_id');
-    final userId = await SharedPreferencesManager.getIntValue('user_id');
-    final permission = await _getPermission();
-    await _fetchBMSummary(branchId ?? 0, userId ?? 0, permission ?? '');
+    await fetchSummaryAmounts();
   }
 
   @override
@@ -110,7 +107,9 @@ class DashboardController extends GetxController {
 
   Future<void> fetchSummaryAmounts() async {
     try {
-      if (UserRepository.shared.isBM) {
+      if (UserRepository.shared.isBM ||
+          UserRepository.shared.isEco ||
+          UserRepository.shared.isCO) {
         final branchId = await SharedPreferencesManager.getIntValue(
           'branch_id',
         );
@@ -269,7 +268,7 @@ class DashboardController extends GetxController {
 
     activeCOCount.value = coSummaries.fold(0, (sum, c) => sum + c.activeClients);
     overdueCOCount.value =
-        coSummaries.where((c) => c.overdueClients > 0).length;
+        coSummaries.fold(0, (sum, c) => sum + c.overdueClients);
     // collectedCOCount.value = coSummaries.where((c) => c.paidClients > 0).length;
 
     final outstandingSum = coSummaries.fold(

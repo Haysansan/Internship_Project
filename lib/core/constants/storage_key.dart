@@ -8,4 +8,12 @@ enum Language {
   const Language(this.key);
 }
 
-enum Credential { token, username, password, user_id, branch_id, permission }
+enum Credential {
+  token,
+  username,
+  password,
+  user_id,
+  branch_id,
+  permission,
+  device_verified,
+}

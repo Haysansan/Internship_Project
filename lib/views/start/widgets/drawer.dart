@@ -22,6 +22,11 @@ class DrawerWidget extends StatelessWidget {
     Get.toNamed(Routes.contactUs);
   }
 
+  void cashSummaryByBMHandleTap() {
+    Get.back();
+    Get.toNamed(Routes.cashSummaryByBM);
+  }
+
   void logOutHandleTap() {
     Get.back();
     DialogManager.showCustom(
@@ -167,6 +172,18 @@ class DrawerWidget extends StatelessWidget {
                     onTap: contactUsHandleTap,
                   ),
                   16.height,
+
+                  // Summary Cash by BM (CEO sees all BMs, BM sees their own)
+                  if (UserRepository.shared.isEco ||
+                      UserRepository.shared.isBM) ...[
+                    CustomListTile(
+                      leadingIconData: Icons.summarize,
+                      text: 'Summary Cash by BM',
+                      trillingIconData: Icons.arrow_forward_ios_rounded,
+                      onTap: cashSummaryByBMHandleTap,
+                    ),
+                    16.height,
+                  ],
 
                   // Log out
                   CustomListTile(

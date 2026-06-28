@@ -105,10 +105,12 @@ class OtpVerificationController extends GetxController {
       final data = getPropertyFromJson(res.data, 'data');
       final LoginModel login = LoginModel.fromJson(data);
 
-      if (login.permission.isNotEmpty &&
-          login.permission != Rule.co.name &&
-          login.permission != Rule.bm.name &&
-          login.permission != Rule.ceo.name) {
+      final String permission = login.permission.toLowerCase();
+      if (permission.isNotEmpty &&
+          permission != Rule.co.name &&
+          permission != Rule.bm.name &&
+          permission != Rule.ceo.name &&
+          permission != 'eco') {
         DialogManager.showDialog(
           title: LocaleKeys.permission.tr,
           subTitle: LocaleKeys.noPermission.tr,
@@ -137,7 +139,16 @@ class OtpVerificationController extends GetxController {
         Credential.permission.name,
         login.permission,
       );
+
+      // Marks this install as OTP-verified so future logins (even after
+      // logout) skip the OTP step — only a fresh install requires it again.
+      await SharedPreferencesManager.setValue(
+        Credential.device_verified.name,
+        true,
+      );
+
       UserRepository.shared.setUserTypeFromPermission(login.permission);
+      await UserRepository.shared.fetchProfile(login.user_id);
 
       Get.offAllNamed(Routes.start);
     } catch (e) {

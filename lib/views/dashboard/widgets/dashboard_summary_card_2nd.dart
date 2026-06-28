@@ -35,7 +35,7 @@ class DashboardSummaryCard2 extends StatelessWidget {
     Key? key,
     required this.summary,
     required this.userName,
-    this.companyName = 'Soft Creative CO.,LTD',
+    this.companyName = 'TTC Pawnshop',
     this.currencySymbol = '៛',
     this.entityLabel = 'Clients',
   }) : super(key: key);
@@ -134,7 +134,7 @@ class _CardHeader extends StatelessWidget {
               ),
               4.height,
               Text(
-                'Hi, $userName! Welcome to SC Loan.',
+                'Hi, ${UserRepository.shared.profile.name}! Welcome to TTC.',
                 style: TextStyle(
                   color: Colors.white.withValues(alpha: 0.9),
                   fontSize: 13,

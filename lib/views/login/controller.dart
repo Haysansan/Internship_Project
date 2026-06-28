@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:get/get.dart';
 import 'package:apploan/core/core.dart';
+import 'package:apploan/flavor/flavor.dart';
 import 'package:apploan/models/models.dart';
 import 'package:apploan/routes.dart';
-import 'package:apploan/views/sync_data/controller.dart';
 
 class LoginController extends GetxController {
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
@@ -71,9 +71,6 @@ class LoginController extends GetxController {
 
       final LoginModel login = LoginModel.fromJson(data);
 
-      // Permission and token are only issued once OTP verification
-      // succeeds — OtpVerificationController.verifyOtp() reads them from
-      // the otp/verify response and sets up the session from there.
       await SharedPreferencesManager.setValue(
         Credential.username.name,
         usernameCtl.text,
@@ -84,10 +81,19 @@ class LoginController extends GetxController {
       );
 
       DialogManager.hideLoading();
-      Get.offAllNamed(
-        Routes.otpVerification,
-        arguments: {'userId': login.user_id},
-      );
+
+      // OTP is only required on a fresh install's first login — once this
+      // device has verified OTP, plain logins (even after logout) skip it.
+      if (await _requiresOtp()) {
+        Get.offAllNamed(
+          Routes.otpVerification,
+          arguments: {'userId': login.user_id},
+        );
+        return;
+      }
+
+      await _persistSession(login);
+      Get.offAllNamed(Routes.start);
 
       // Refresh local cache in the background so offline screens and the
       // disbursement form's cached lookups are up to date after login.
@@ -107,30 +113,31 @@ class LoginController extends GetxController {
     }
   }
 
-  Future<void> _getProfile(int UserId) async {
-    final Map<String, dynamic> params = {'id': UserId};
-    try {
-      final res = await Get.find<ApiService>().get(
-        EndPoints.profile,
-        queryParameters: params,
-        isShowLoading: false,
-      );
+  Future<bool> _requiresOtp() async {
+    final bool deviceVerified =
+        await SharedPreferencesManager.get(Credential.device_verified.name) ??
+        false;
+    return !deviceVerified;
+  }
 
-      final data = getPropertyFromJson(res.data, 'data');
+  Future<void> _persistSession(LoginModel login) async {
+    AppConfig.shared.token = login.token;
 
-      if (data != null) {
-        final ProfileModel profile = ProfileModel.fromJson(data);
-        UserRepository.shared.setProfile(profile);
-        return;
-      }
-
-      Get.offAllNamed(Routes.login);
-    } catch (e) {
-      if (isClosed) {
-        return;
-      }
-
-      ExceptionHandler.handleException(e);
-    }
+    await SharedPreferencesManager.setValue(Credential.token.name, login.token);
+    await SharedPreferencesManager.setValue('name', login.name);
+    await SharedPreferencesManager.setValue(
+      Credential.branch_id.name,
+      login.branch_id,
+    );
+    await SharedPreferencesManager.setValue(
+      Credential.user_id.name,
+      login.user_id,
+    );
+    await SharedPreferencesManager.setValue(
+      Credential.permission.name,
+      login.permission,
+    );
+    UserRepository.shared.setUserTypeFromPermission(login.permission);
+    await UserRepository.shared.fetchProfile(login.user_id);
   }
 }

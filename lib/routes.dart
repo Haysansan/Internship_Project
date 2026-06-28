@@ -36,6 +36,7 @@ class Routes {
   static const String dino = '/dino';
   static const String received = '/received';
   static const String loanDisbursmentsList = '/loanDisbursmentsList';
+  static const String cashSummaryByBM = '/cash-summary-by-bm';
 
   static List<GetPage> pages = [
     GetPage(
@@ -178,6 +179,11 @@ class Routes {
       name: loanDisbursmentsList,
       page: () => const DisburmentListView(),
       binding: DisburmentListViewBinding(),
+    ),
+    GetPage(
+      name: cashSummaryByBM,
+      page: () => const CashSummaryByBMView(),
+      binding: CashSummaryByBMBinding(),
     ),
   ];
 }

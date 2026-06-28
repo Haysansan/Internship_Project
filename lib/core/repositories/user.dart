@@ -59,19 +59,48 @@ class UserRepository {
     _profile = profile;
   }
 
+  Future<void> fetchProfile(int userId) async {
+    try {
+      final res = await Get.find<ApiService>().get(
+        EndPoints.profile,
+        queryParameters: {'id': userId},
+        isShowLoading: false,
+      );
+
+      final data = getPropertyFromJson(res.data, 'data');
+      if (data != null) {
+        setProfile(ProfileModel.fromJson(data));
+      }
+    } catch (e) {
+      ExceptionHandler.handleException(e);
+    }
+  }
+
   void setUserType(String value) {
-    _isCO = false;
-    _isBM = false;
-    _isEco = false;
-    switch (value) {
-      case 'Credit Officer':
+    final normalized = value.trim().toLowerCase();
+    switch (normalized) {
+      case 'credit officer':
+      case 'co':
         _isCO = true;
+        _isBM = false;
+        _isEco = false;
         break;
-      case 'Branch Manager':
+      case 'branch manager':
+      case 'bm':
+        _isCO = false;
         _isBM = true;
+        _isEco = false;
         break;
-      case 'Ceo':
+      case 'ceo':
+      case 'eco':
+        _isCO = false;
+        _isBM = false;
         _isEco = true;
+        break;
+      default:
+        // Unrecognized profile type (e.g. 'N/A') — keep whatever role
+        // was already resolved (e.g. from login permission) instead of
+        // silently clearing it.
         break;
     }
   }

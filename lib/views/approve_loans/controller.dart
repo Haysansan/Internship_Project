@@ -24,7 +24,10 @@ class ApproveLoansController extends GetxController {
   List<LoanApprovalModel> _verifySnapshot = [];
   List<LoanApprovalModel> _disbursementSnapshot = [];
   List<LoanApprovalModel> _acceptSnapshot = [];
-  final TextEditingController searchCtl = TextEditingController();
+
+  // ─── Filter by CO (replaces free-text search) ───
+  final RxList<String> coNames = <String>[].obs;
+  final RxnString selectedOfficer = RxnString();
 
   final Map<int, TextEditingController> _commentControllers = {};
   TextEditingController getCommentController(int loanId) =>
@@ -78,7 +81,6 @@ class ApproveLoansController extends GetxController {
 
   @override
   void onClose() {
-    searchCtl.dispose();
     for (final c in _commentControllers.values) c.dispose();
     super.onClose();
   }
@@ -100,7 +102,7 @@ class ApproveLoansController extends GetxController {
   Future<void> fetchLoans() async {
     try {
       isLoading.value = true;
-      searchCtl.clear();
+      selectedOfficer.value = null;
       await _loadAllLists();
     } catch (e) {
       if (isClosed) return;
@@ -166,18 +168,21 @@ class ApproveLoansController extends GetxController {
       _acceptSnapshot = List.of(acceptLoans);
       _allSnapshot = List.of(allLoans);
     }
+
+    coNames.value =
+        all
+            .map((l) => l.creditOfficer)
+            .where((name) => name.isNotEmpty && name != 'N/A')
+            .toSet()
+            .toList()
+          ..sort();
+    selectedOfficer.value = null;
   }
 
-  void search() {
-    final q = searchCtl.text.trim().toLowerCase();
-    if (q.isEmpty) {
-      _restoreFromSnapshots();
-      return;
-    }
+  void filterByOfficer(String? name) {
+    selectedOfficer.value = name;
 
-    bool match(LoanApprovalModel l) =>
-        l.client.toLowerCase().contains(q) ||
-        l.clientCode.toLowerCase().contains(q);
+    bool match(LoanApprovalModel l) => name == null || l.creditOfficer == name;
 
     allLoans.value = _allSnapshot.where(match).toList();
 
@@ -186,21 +191,6 @@ class ApproveLoansController extends GetxController {
       disbursementLoans.value = _disbursementSnapshot.where(match).toList();
     } else {
       acceptLoans.value = _acceptSnapshot.where(match).toList();
-    }
-  }
-
-  void clearSearch() {
-    searchCtl.clear();
-    _restoreFromSnapshots();
-  }
-
-  void _restoreFromSnapshots() {
-    allLoans.value = List.of(_allSnapshot);
-    if (isBM) {
-      verifyLoans.value = List.of(_verifySnapshot);
-      disbursementLoans.value = List.of(_disbursementSnapshot);
-    } else {
-      acceptLoans.value = List.of(_acceptSnapshot);
     }
   }
 

@@ -244,18 +244,26 @@ class RepaymentController extends GetxController {
               .where((e) => !collectedLoanIds.contains(e.loan_id)),
         );
 
-        _allItems = [..._allItems, ...fetched];
+        // Dedupe defensively in case the server re-sends a loan already
+        // collected on a previous page of this same fetch.
+        final existingLoanIds = _allItems.map((e) => e.loan_id).toSet();
+        final newItems =
+            fetched.where((e) => !existingLoanIds.contains(e.loan_id)).toList();
+        _allItems = [..._allItems, ...newItems];
 
         hasMore = getPropertyFromJson(res.data, 'hasMore') == true;
-        _skip =
-            int.tryParse(
-              getPropertyFromJson(res.data, 'nextSkip')?.toString() ?? '',
-            ) ??
-            _skip;
+        final nextSkip = int.tryParse(
+          getPropertyFromJson(res.data, 'nextSkip')?.toString() ?? '',
+        );
+
+        // If the server didn't actually advance the cursor, stop instead of
+        // re-fetching (and re-merging) the same page forever.
+        if (nextSkip == null || nextSkip <= _skip) break;
+        _skip = nextSkip;
 
         // Nothing new came back even though the server claims more exists —
         // stop instead of looping forever.
-        if (fetched.isEmpty) break;
+        if (newItems.isEmpty) break;
       }
       pagination.isEndOfPage = true;
 

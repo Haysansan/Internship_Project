@@ -37,14 +37,37 @@ class ApproveLoansView extends GetView<ApproveLoansController> {
               ),
             ),
 
-            // Search bar (static, no Obx needed)
+            // Filter by CO (replaces free-text search)
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-              child: SearchField(
-                controller: controller.searchCtl,
-                hintText: LocaleKeys.searchByCIDName.tr,
-                onClear: controller.clearSearch,
-                onSubmitted: (_) => controller.search(),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Obx(() {
+                    if (controller.selectedOfficer.value == null) {
+                      return const SizedBox();
+                    }
+                    return Align(
+                      alignment: Alignment.centerRight,
+                      child: GestureDetector(
+                        onTap: () => controller.filterByOfficer(null),
+                        child: Text(
+                          'Clear',
+                          style: AppTextStyle.normalRedBold,
+                        ),
+                      ),
+                    );
+                  }),
+                  Obx(
+                    () => SearchDropDown<String>(
+                      items: controller.coNames,
+                      itemAsString: (item) => item,
+                      onChanged: controller.filterByOfficer,
+                      selectedItem: controller.selectedOfficer.value,
+                      label: 'Filter by CO',
+                    ),
+                  ),
+                ],
               ),
             ),
 

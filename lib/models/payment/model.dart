@@ -104,16 +104,49 @@ class PaymentModel {
   }
 }
 
+class BmCashSummary {
+  final int bmId;
+  final String bmName;
+  final String branchName;
+  final double totalAmount;
+  final int totalClients;
+
+  BmCashSummary({
+    required this.bmId,
+    required this.bmName,
+    required this.branchName,
+    required this.totalAmount,
+    this.totalClients = 0,
+  });
+
+  factory BmCashSummary.fromJson(Map<String, dynamic> json) {
+    return BmCashSummary(
+      bmId: int.tryParse(json['bm_id']?.toString() ?? '') ?? 0,
+      bmName: json['bm']?.toString() ?? json['bm_name']?.toString() ?? '',
+      branchName:
+          json['branch']?.toString() ??
+          json['branch_name']?.toString() ??
+          '',
+      totalAmount:
+          double.tryParse(json['balance']?.toString() ?? '') ?? 0.0,
+      totalClients:
+          int.tryParse(json['total_client']?.toString() ?? '') ?? 0,
+    );
+  }
+}
+
 class CoRepaymentGroup {
   final int coId;
   final String coName;
   final double amount;
   final List<String> loanIds;
+  final List<PaymentModel> items;
 
   CoRepaymentGroup({
     required this.coId,
     required this.coName,
     required this.amount,
     this.loanIds = const [],
+    this.items = const [],
   });
 }
