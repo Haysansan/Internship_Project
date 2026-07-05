@@ -41,11 +41,13 @@ class LoginController extends GetxController {
 
   Future<void> login() async {
     try {
+      final deviceId = await DeviceInfoHelper.getDeviceId();
       final deviceName = await DeviceInfoHelper.getDeviceName();
       final Map<String, dynamic> payload = {
         'username': usernameCtl.text.replaceAll(' ', '').trim(),
         'password': passCtl.text,
         'device_name': deviceName,
+        'device_id': deviceId,
       };
 
       final res = await Get.find<ApiService>().post(
@@ -137,6 +139,8 @@ class LoginController extends GetxController {
       Credential.permission.name,
       login.permission,
     );
+    await SharedPreferencesManager.setValue('eod_enable', login.eod_enable);
+    UserRepository.shared.setEodEnabled(login.eod_enable);
     UserRepository.shared.setUserTypeFromPermission(login.permission);
     await UserRepository.shared.fetchProfile(login.user_id);
   }

@@ -153,7 +153,7 @@ class WrittenoffSheet extends StatelessWidget {
 
             PrimaryButton(
               text: LocaleKeys.confirmation.tr,
-              onPressed: submitBooking,
+              onPressed: UserRepository.shared.eodEnabled.value ? submitBooking : null,
             ),
             UIConstants.spacing.height,
           ],

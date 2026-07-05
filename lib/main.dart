@@ -46,7 +46,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
-      title: 'SC Mobile',
+      title: 'TTC Mobile',
       translationsKeys: AppTranslation.translations,
       locale: AppConfig.shared.languageLocale,
       fallbackLocale: const Locale('KM', 'KH'),

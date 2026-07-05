@@ -15,7 +15,7 @@ class CashSummaryByBMView extends GetView<CashSummaryByBMController> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CustomAppBar(
-        title: 'Summary Cash by BM',
+        title: UserRepository.shared.isEco ? 'CEO Taill' : 'BM Taill',
         onBack: () => Navigator.pop(context),
       ),
       body: Obx(() {

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:apploan/core/core.dart';
 import 'package:apploan/models/models.dart';
+import 'package:apploan/routes.dart';
 
 class CustomerDetailView extends StatelessWidget {
   const CustomerDetailView({Key? key, required this.client}) : super(key: key);
@@ -15,6 +16,14 @@ class CustomerDetailView extends StatelessWidget {
       appBar: CustomAppBar(
         title: LocaleKeys.customers.tr,
         onBack: () => Navigator.pop(context),
+        actions: UserRepository.shared.isCO
+            ? [
+                IconButton(
+                  icon: const Icon(Icons.edit_outlined, color: AppColor.white),
+                  onPressed: () => Get.toNamed(Routes.editCustomer, arguments: client),
+                ),
+              ]
+            : null,
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),

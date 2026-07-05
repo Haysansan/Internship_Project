@@ -1,4 +1,5 @@
 import 'package:apploan/core/offline/database_helper.dart';
+import 'package:dio/dio.dart' as dio;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
@@ -42,7 +43,7 @@ class ArrearSheet extends StatelessWidget {
         'branch': delivery.branch,
         'client_id': delivery.clientId,
         'loan_id': delivery.id,
-        'client_code': delivery.clientId,
+        'client_code': delivery.clientCode,
         'photo': '',
         'total_repayment': rawAmount,
         'amount_penalty': totalPenaltyCtl.text,
@@ -54,6 +55,31 @@ class ArrearSheet extends StatelessWidget {
         'syncedate': DateFormat('yyyy-MM-dd').format(DateTime.now()),
         'synced': '0',
       });
+
+      final formData = dio.FormData.fromMap({
+        'client': delivery.client,
+        'loan_officer': userId,
+        'created_by_id': userId,
+        'branch': delivery.branch,
+        'client_id': delivery.clientId,
+        'loan_id': delivery.id,
+        'client_code': delivery.clientCode,
+        'photo': '',
+        'amount': rawAmount,
+        'amount_penalty': totalPenaltyCtl.text.isEmpty ? '0' : totalPenaltyCtl.text,
+        'currency_id': 2,
+        'description': 'Post Repayment',
+        'gateway_id': 1,
+      });
+      await Get.find<ApiService>().post(
+        EndPoints.repaymentStore,
+        formData,
+        isShowLoading: true,
+      );
+
+      await DatabaseHelper.instance.deleteCollectedByLoanId(
+        delivery.id.toString(),
+      );
 
       startCtl.onRefresh();
       DialogManager.showDialog(
@@ -123,7 +149,8 @@ class ArrearSheet extends StatelessWidget {
             PrimaryButton(
               text: LocaleKeys.confirmation.tr,
               onPressed:
-                  UserRepository.shared.isBM || UserRepository.shared.isEco
+                  (UserRepository.shared.isBM || UserRepository.shared.isEco ||
+                          !UserRepository.shared.eodEnabled.value)
                       ? null
                       : submitBooking,
             ),

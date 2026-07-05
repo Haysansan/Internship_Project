@@ -124,6 +124,10 @@ class UserRepository {
     }
   }
 
+  // eod_enable=0 means EOD is open (buttons enabled); 1 means closed (buttons disabled)
+  final RxBool eodEnabled = true.obs;
+  void setEodEnabled(int val) => eodEnabled.value = (val == 0);
+
   bool _isTablet = false;
   bool _isCO = false;
   bool _isBM = false;

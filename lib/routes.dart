@@ -32,11 +32,17 @@ class Routes {
   static const String arealoan = '/arealoan';
   static const String customers = '/customers';
   static const String addCustomer = '/addCustomer';
+  static const String editCustomer = '/editCustomer';
   static const String paidoff = '/paidoff';
   static const String dino = '/dino';
   static const String received = '/received';
   static const String loanDisbursmentsList = '/loanDisbursmentsList';
   static const String cashSummaryByBM = '/cash-summary-by-bm';
+  static const String cashSummaryCo = '/cash-summary-co';
+  static const String collectedVsPlan = '/collected-vs-plan';
+  static const String startOfDay = '/start-of-day';
+  static const String endOfDay = '/end-of-day';
+  static const String profile = '/profile';
 
   static List<GetPage> pages = [
     GetPage(
@@ -160,6 +166,11 @@ class Routes {
       binding: AddCustomersBinding(),
     ),
     GetPage(
+      name: editCustomer,
+      page: () => const EditCustomerView(),
+      binding: EditCustomerBinding(),
+    ),
+    GetPage(
       name: paidoff,
       page: () => const PaidOffView(),
       binding: PaidOffBinding(),
@@ -184,6 +195,33 @@ class Routes {
       name: cashSummaryByBM,
       page: () => const CashSummaryByBMView(),
       binding: CashSummaryByBMBinding(),
+    ),
+    GetPage(
+      name: cashSummaryCo,
+      page: () => const CashSummaryCoView(),
+      binding: CashSummaryCoBinding(),
+    ),
+    GetPage(
+      name: collectedVsPlan,
+      page: () => const CollectedVsPlanView(),
+      binding: CollectedVsPlanBinding(),
+    ),
+    GetPage(
+      name: startOfDay,
+      page: () => const StartOfDayView(),
+      binding: StartOfDayBinding(),
+    ),
+    GetPage(
+      name: endOfDay,
+      page: () => const EndOfDayView(),
+      binding: EndOfDayBinding(),
+    ),
+    GetPage(
+      name: profile,
+      page: () => const ProfileView(),
+      binding: BindingsBuilder(() {
+        Get.lazyPut(() => ProfileController());
+      }),
     ),
   ];
 }

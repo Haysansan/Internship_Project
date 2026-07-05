@@ -101,6 +101,10 @@ class SplashController extends GetxController
     await Future.delayed(const Duration(seconds: 3));
     controller.stop();
 
+    // Restore eod_enable from the last login so buttons stay locked across restarts
+    final eodEnable = await SharedPreferencesManager.getIntValue('eod_enable') ?? 0;
+    UserRepository.shared.setEodEnabled(eodEnable);
+
     try {
       final res = await Get.find<ApiService>().get(
         '${EndPoints.profile}?user_id=$userID',

@@ -2,7 +2,7 @@ name: apploan
 description: "A new Flutter project."
 publish_to: 'none'
 
-version: 1.0.7+6
+version: 1.0.8+7
 
 environment:
   sdk: ^3.7.0

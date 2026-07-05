@@ -10,6 +10,7 @@ class SearchDropDown<T> extends StatelessWidget {
     required this.itemAsString,
     this.selectedItem,
     this.label,
+    this.showClearButton = false,
   }) : super(key: key);
 
   final List<T> items;
@@ -17,6 +18,7 @@ class SearchDropDown<T> extends StatelessWidget {
   final String Function(T) itemAsString;
   final T? selectedItem;
   final String? label;
+  final bool showClearButton;
 
   @override
   Widget build(BuildContext context) {
@@ -25,6 +27,10 @@ class SearchDropDown<T> extends StatelessWidget {
       itemAsString: itemAsString,
       selectedItem: selectedItem,
       onChanged: onChanged,
+      clearButtonProps: ClearButtonProps(
+        isVisible: showClearButton && selectedItem != null,
+        icon: const Icon(Icons.clear, size: 18, color: AppColor.grey),
+      ),
       dropdownDecoratorProps: DropDownDecoratorProps(
         baseStyle: const TextStyle(color: AppColor.primaryText, fontSize: 12),
         dropdownSearchDecoration: InputDecoration(

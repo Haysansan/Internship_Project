@@ -37,78 +37,85 @@ class ProfileView extends GetView<ProfileController> {
 
   @override
   Widget build(BuildContext context) {
-    return PopScope(
-      canPop: false,
-      child: Scaffold(
-        body: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Profile
-              ProfileWidget(),
-              20.height,
+    return Scaffold(
+      appBar: CustomAppBar(
+        title: LocaleKeys.profile.tr,
+        onBack: () => Get.back(),
+      ),
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Profile photo + name
+            Container(
+              width: double.infinity,
+              color: AppColor.primary.withOpacity(0.05),
+              padding: const EdgeInsets.symmetric(vertical: 24),
+              child: ProfileWidget(),
+            ),
+            24.height,
 
-              // User information
-              Padding(
-                padding: UIConstants.spacing.padHorizontal,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(LocaleKeys.profile.tr, style: AppTextStyle.normalPrimaryBold),
-                    10.height,
-                    ProfileItemWidget(icon: Icons.phone, text: UserRepository.shared.profile.phone),
-                    20.height,
-                    const ChangePasswordWidget(),
-                    20.height,
-                    const ProfileItemWidget(icon: Icons.location_on, text: 'Phnom Penh'),
-                  ],
-                ),
+            // User information
+            Padding(
+              padding: UIConstants.spacing.padHorizontal,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(LocaleKeys.profile.tr, style: AppTextStyle.normalPrimaryBold),
+                  10.height,
+                  ProfileItemWidget(icon: Icons.phone, text: UserRepository.shared.profile.phone),
+                  20.height,
+                  const ChangePasswordWidget(),
+                  20.height,
+                  const ProfileItemWidget(icon: Icons.location_on, text: 'Phnom Penh'),
+                ],
               ),
-              40.height,
+            ),
+            40.height,
 
-              // Settings
-              Padding(
-                padding: UIConstants.spacing.padHorizontal,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      LocaleKeys.settings.tr,
-                      style: AppTextStyle.normalPrimaryBold,
-                    ),
-                    10.height,
+            // Settings
+            Padding(
+              padding: UIConstants.spacing.padHorizontal,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    LocaleKeys.settings.tr,
+                    style: AppTextStyle.normalPrimaryBold,
+                  ),
+                  10.height,
 
-                    // Language
-                    ProfileItemWidget(
-                      icon: Icons.language,
-                      text: LocaleKeys.language.tr,
-                      onTap: () => Get.toNamed(Routes.language),
-                    ),
-                    20.height,
+                  // Language
+                  ProfileItemWidget(
+                    icon: Icons.language,
+                    text: LocaleKeys.language.tr,
+                    onTap: () => Get.toNamed(Routes.language),
+                  ),
+                  20.height,
 
-                    // Logout
-                    ProfileItemWidget(
-                      icon: Icons.logout,
-                      text: LocaleKeys.logout.tr,
-                      iconColor: AppColor.red,
-                      style: AppTextStyle.normalRedRegular,
-                      onTap: onLogout,
-                    ),
-                    20.height,
+                  // Logout
+                  ProfileItemWidget(
+                    icon: Icons.logout,
+                    text: LocaleKeys.logout.tr,
+                    iconColor: AppColor.red,
+                    style: AppTextStyle.normalRedRegular,
+                    onTap: onLogout,
+                  ),
+                  20.height,
 
-                    // Delete account
-                    ProfileItemWidget(
-                      icon: Icons.delete,
-                      text: LocaleKeys.deleteAccount.tr,
-                      iconColor: AppColor.red,
-                      style: AppTextStyle.normalRedRegular,
-                      onTap: onDeleteAccount,
-                    ),
-                  ],
-                ),
+                  // Delete account
+                  ProfileItemWidget(
+                    icon: Icons.delete,
+                    text: LocaleKeys.deleteAccount.tr,
+                    iconColor: AppColor.red,
+                    style: AppTextStyle.normalRedRegular,
+                    onTap: onDeleteAccount,
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+            40.height,
+          ],
         ),
       ),
     );

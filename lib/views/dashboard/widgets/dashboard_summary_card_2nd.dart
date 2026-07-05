@@ -134,7 +134,7 @@ class _CardHeader extends StatelessWidget {
               ),
               4.height,
               Text(
-                'Hi, ${UserRepository.shared.profile.name}! Welcome to TTC.',
+                'Hi, ${userName}! Welcome to TTC.',
                 style: TextStyle(
                   color: Colors.white.withValues(alpha: 0.9),
                   fontSize: 13,

@@ -8,7 +8,7 @@ class EndPoints {
   static String get delivery => 'delivery-listing';
   static String get finishDelivery => 'delivery/payment-at-confirm';
   static String get reason => 'delivery/reason/kh';
-  static String get updateProfile => 'your-profile';
+  static String get updateProfile => 'user/update_profile';
   static String get scanGetProduct => 'delivery/scan/get-product';
   static String get scanComplete => 'delivery/scan/completed';
   static String get customerDelivery => 'customer/delivery-list';
@@ -16,7 +16,7 @@ class EndPoints {
   static String get createBooking => 'customer/booking';
   static String get zone => 'customer/zone-listing';
   static String get bookingDetails => 'customer/booking';
-  static String get contactUs => 'setting/general';
+  static String get contactUs => 'contact_us/1/show';
   static String get tracking => 'delivery-tracking';
   static String get deleteAccount => 'disable-user';
   static String get arrearLoan => 'report/loan/arrears';
@@ -28,6 +28,10 @@ class EndPoints {
 
   static String get disbursement => 'loan/get_disburse_list';
   static String get storeDisburment => 'loan/store_disbursement';
+  // TODO: placeholder path — backend hasn't built this endpoint yet.
+  // Swap in the real path once available.
+  static String updateDisbursement(String loanId) =>
+      'loan/$loanId/update_disbursement';
 
   static String get getClient => 'loan/get_loans_repay';
   static String get getClientDisb => 'loan/get_clientDisb';
@@ -45,6 +49,8 @@ class EndPoints {
   static String get getvillage => 'client/get_village';
 
   static String get clientStore => 'client/store';
+  static String clientEdit(int id) => 'client/$id/edit';
+  static String clientUpdate(int id) => 'client/$id/update_client';
   static const String getAppliedAmountDis = 'loan/applied_amount_dis';
   static const String loanCreate = 'loan/create';
   static String get clientCreate => 'client/create';
@@ -82,14 +88,25 @@ class EndPoints {
       'report/loan/cashCeoReceiveFromBM';
 
   static String get cashSummaryByBM => 'report/loan/cashSummaryByBM';
+  static String get cashSummaryCo => 'report/loan/outstandingSummaryByCO';
+  static String get outstandingSummaryByBM => 'report/loan/outstandingSummaryByBM';
 
   // TODO: placeholder path — backend hasn't built this endpoint yet
   // (every variant tried 404s). Swap in the real path once available.
   static String get cashTransferCoStore => 'report/loan/cash_transfer_co_store';
 
+  static String get startOfDay => 'report/loan/startOfDay';
+  static String get checkEndOfDay => 'accounting/end_off_days/check';
+  static String get endOfDay => 'report/loan/end_of_day';
+  static String get storeEndOfDay => 'report/loan/storeEndOfDay';
+  static String get endOfDaySummary => 'report/loan/endOfDaySummary';
+  static String get endOfDayExpenses => 'report/loan/endOfDayExpenses';
+  static String get endOfDayCashCeo => 'report/loan/end_of_day_cash_ceo';
+
   static String get sendOtp => 'login/otp';
   static String get verifyOtp => 'login/otp/verify';
   static String get resendOtp => 'login/otp/resend';
-
   static String rejectLoan(String loanId) => 'loan/$loanId/reject_loan';
+
+  static String get collectedVsPlan => 'report/loan/collectedVsPlan';
 }

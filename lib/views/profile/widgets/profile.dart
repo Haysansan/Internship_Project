@@ -42,8 +42,17 @@ class ProfileWidget extends StatelessWidget {
                           child: Obx(
                             () {
                               if ((profilCtl.profile.value?.path ?? '').isEmpty) {
+                                final photoUrl = profilCtl.photoUrl.value;
+                                if (photoUrl.isEmpty || photoUrl == 'N/A') {
+                                  return Image.asset(
+                                    AssetPath.placeholder.path,
+                                    width: 120,
+                                    height: 120,
+                                    fit: BoxFit.cover,
+                                  );
+                                }
                                 return CustomNetworkImage(
-                                  imageUrl: UserRepository.shared.profile.profile,
+                                  imageUrl: photoUrl,
                                   width: 120,
                                   height: 120,
                                 );

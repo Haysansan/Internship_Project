@@ -88,10 +88,12 @@ class OtpVerificationController extends GetxController {
     try {
       isVerifying.value = true;
       final deviceName = await DeviceInfoHelper.getDeviceName();
+      final deviceId = await DeviceInfoHelper.getDeviceId();
       final res = await Get.find<ApiService>().post(EndPoints.verifyOtp, {
         'user_id': userId,
         'otp': otpCtl.text.trim(),
         'device_name': deviceName,
+        'device_id': deviceId,
       }, isShowLoading: true);
 
       if (res.statusCode != 200 || res.data['success'] == false) {
@@ -139,6 +141,7 @@ class OtpVerificationController extends GetxController {
         Credential.permission.name,
         login.permission,
       );
+      await SharedPreferencesManager.setValue('eod_enable', login.eod_enable);
 
       // Marks this install as OTP-verified so future logins (even after
       // logout) skip the OTP step — only a fresh install requires it again.
@@ -147,6 +150,7 @@ class OtpVerificationController extends GetxController {
         true,
       );
 
+      UserRepository.shared.setEodEnabled(login.eod_enable);
       UserRepository.shared.setUserTypeFromPermission(login.permission);
       await UserRepository.shared.fetchProfile(login.user_id);
 

@@ -120,16 +120,16 @@ class PayfoeachotherView extends GetView<PayfoeachotherController> {
                 ),
                 UIConstants.spacing.height,
                 // Submit
-                PrimaryButton(
+                Obx(() => PrimaryButton(
                   text: LocaleKeys.submit.tr,
-                  onPressed: () async {
-                    if (!controller.formKey.currentState!.validate()) {
-                      return;
-                    }
-                    controller.formKey.currentState!.save();
-                    await controller.submitBooking();
-                  },
-                ),
+                  onPressed: UserRepository.shared.eodEnabled.value
+                      ? () async {
+                          if (!controller.formKey.currentState!.validate()) return;
+                          controller.formKey.currentState!.save();
+                          await controller.submitBooking();
+                        }
+                      : null,
+                )),
 
                 30.height,
               ],

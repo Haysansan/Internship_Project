@@ -126,14 +126,13 @@ class TransferDataView extends GetView<TransferDataController> {
                       }),
                       20.height,
                       Obx(() {
+                        final blocked = controller.isLoading.value ||
+                            controller.clientCount.value == 0 ||
+                            !UserRepository.shared.eodEnabled.value;
                         return PrimaryButton(
                           text: LocaleKeys.transfer.tr,
                           width: 100,
-                          onPressed:
-                              (controller.isLoading.value ||
-                                      controller.clientCount.value == 0)
-                                  ? null
-                                  : onSearch,
+                          onPressed: blocked ? null : onSearch,
                         );
                       }),
                     ],
@@ -180,6 +179,7 @@ class _CashTransferToBmForm extends StatelessWidget {
                 controller: c.cashAmountCtl,
                 keyboardType: TextInputType.number,
                 hintText: '0',
+                inputFormatters: [ThousandsSeparatorInputFormatter()],
                 validator: (v) => FormValidator.empty(v),
               ),
             ),

@@ -4,6 +4,7 @@ class ArrearModel {
   final String loanOfficer;
   final String branch;
   final String clientId;
+  final String clientCode;
   final String loanProduct;
   final String expectedMaturityDate;
   final String disbursedOnDate;
@@ -24,6 +25,7 @@ class ArrearModel {
     required this.loanOfficer,
     required this.branch,
     required this.clientId,
+    required this.clientCode,
     required this.loanProduct,
     required this.expectedMaturityDate,
     required this.disbursedOnDate,
@@ -46,6 +48,7 @@ class ArrearModel {
       loanOfficer: json['loan_officer'] ?? '',
       branch: json['branch'] ?? '',
       clientId: json['client_id']?.toString() ?? '',
+      clientCode: json['client_code']?.toString() ?? '',
       loanProduct: json['loan_product'] ?? '',
       expectedMaturityDate: json['expected_maturity_date'] ?? '',
       disbursedOnDate: json['disbursed_on_date'] ?? '',

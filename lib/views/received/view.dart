@@ -93,24 +93,40 @@ class _FilterSection extends StatelessWidget {
             children: [
               Text(filterLabel, style: AppTextStyle.normalPrimaryBold),
               Obx(() {
-                if (c.selectedOfficer.value == null) return const SizedBox();
+                final hasFilter = isCEO
+                    ? c.selectedBm.value != null
+                    : c.selectedOfficer.value != null;
+                if (!hasFilter) return const SizedBox();
                 return GestureDetector(
-                  onTap: () => c.filterByOfficer(null),
+                  onTap: () => isCEO
+                      ? c.filterByBm(null)
+                      : c.filterByOfficer(null),
                   child: Text('Clear', style: AppTextStyle.normalRedBold),
                 );
               }),
             ],
           ),
           const SizedBox(height: 8),
-          Obx(
-            () => SearchDropDown<String>(
-              items: c.coNames,
-              itemAsString: (item) => item,
-              onChanged: c.filterByOfficer,
-              selectedItem: c.selectedOfficer.value,
-              label: searchLabel,
+          if (isCEO)
+            Obx(
+              () => SearchDropDown<StaffModel>(
+                items: c.bmRoster,
+                itemAsString: (bm) => bm.name,
+                onChanged: c.filterByBm,
+                selectedItem: c.selectedBm.value,
+                label: searchLabel,
+              ),
+            )
+          else
+            Obx(
+              () => SearchDropDown<String>(
+                items: c.coNames,
+                itemAsString: (item) => item,
+                onChanged: c.filterByOfficer,
+                selectedItem: c.selectedOfficer.value,
+                label: searchLabel,
+              ),
             ),
-          ),
         ],
       ),
     );
@@ -145,6 +161,7 @@ class _COCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = Get.find<ReceivedController>();
+    final isCEO = UserRepository.shared.isEco;
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -193,8 +210,17 @@ class _COCard extends StatelessWidget {
             () => SizedBox(
               height: 36,
               child: ElevatedButton(
-                onPressed:
-                    c.isReceiving.value ? null : () => c.receiveGroup(group),
+                onPressed: c.isReceiving.value
+                    ? null
+                    : () {
+                        if (isCEO) {
+                          BottomSheetManager.custom(
+                            content: CeoReceiveAmountSheet(group: group),
+                          );
+                        } else {
+                          c.receiveGroup(group);
+                        }
+                      },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColor.primary,
                   shape: RoundedRectangleBorder(

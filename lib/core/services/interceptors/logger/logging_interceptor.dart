@@ -133,7 +133,7 @@ class LoggingInterceptor extends Interceptor {
         _printBoxed(
           _logPrintError,
           header: 'DioError ║ ${err.type}',
-          text: err.message,
+          text: err.message ?? err.error?.toString(),
         );
         _printRequestHeader(_logPrintError, err.requestOptions);
       }

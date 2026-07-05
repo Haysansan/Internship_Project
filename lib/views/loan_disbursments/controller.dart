@@ -52,6 +52,9 @@ class LoanDisbursmentsController extends GetxController {
   final Rxn<ProductTypeModel> selectedProductType = Rxn<ProductTypeModel>();
   final RxBool isLoadingProductTypes = false.obs;
 
+  final Rxn<DisbursementListModel> editingLoan = Rxn<DisbursementListModel>();
+  bool get isEditing => editingLoan.value != null;
+
   void onFeeChanged(List<FeeModel> fees) => selectedFees.assignAll(fees);
   // void onDailyInomeChanged(List<DailyIncomeModel> dailyincome) =>
   //     selectedDailyIncome.assignAll(dailyincome);
@@ -64,6 +67,9 @@ class LoanDisbursmentsController extends GetxController {
       'yyyy-MM-dd',
     ).format(now.add(const Duration(days: 1)));
 
+    final args = Get.arguments;
+    if (args is DisbursementListModel) editingLoan.value = args;
+
     _loadHardcodedFrequencyTypes(); // sync, call directly
 
     await Future.wait([
@@ -73,7 +79,26 @@ class LoanDisbursmentsController extends GetxController {
       fetchLoanCreate(),
       fetchDailyIncome(),
     ]);
+
+    _prefillForEdit();
     super.onInit();
+  }
+
+  // Only the fields returned by the disbursement list API can be prefilled;
+  // the list doesn't carry product/frequency/dates/fees, so those still need
+  // to be re-entered when editing.
+  void _prefillForEdit() {
+    final loan = editingLoan.value;
+    if (loan == null) return;
+
+    selectedClient.value = clientList.firstWhereOrNull(
+      (c) => c.id.toString() == loan.client_id,
+    );
+    selectedAppliedAmount.value = appliedAmountList.firstWhereOrNull(
+      (a) => a.amountLoans == loan.principal,
+    );
+    instCtl.text = loan.loan_term;
+    intCtl.text = loan.interestRate;
   }
 
   // @override
@@ -434,15 +459,26 @@ class LoanDisbursmentsController extends GetxController {
         formData.fields.add(MapEntry('fee[]', f.id.toString()));
       }
 
-      await Get.find<ApiService>().post(
-        EndPoints.storeDisburment,
-        formData,
-        isShowLoading: true,
-      );
+      if (isEditing) {
+        await Get.find<ApiService>().post(
+          EndPoints.updateDisbursement(editingLoan.value!.loan_id),
+          formData,
+          isShowLoading: true,
+        );
+      } else {
+        await Get.find<ApiService>().post(
+          EndPoints.storeDisburment,
+          formData,
+          isShowLoading: true,
+        );
+      }
 
       DialogManager.showDialog(
         title: LocaleKeys.successfully.tr,
-        subTitle: LocaleKeys.youHavesuccessfullyCreatedTheBooking.tr,
+        subTitle:
+            isEditing
+                ? LocaleKeys.update.tr
+                : LocaleKeys.youHavesuccessfullyCreatedTheBooking.tr,
         onPressed: () {
           Get.offNamed(Routes.loanDisbursmentsList);
           Get.find<DisburmentListController>().fetchDisburmentList();
@@ -453,3 +489,4 @@ class LoanDisbursmentsController extends GetxController {
     }
   }
 }
+

@@ -4,7 +4,7 @@ class LoginModel {
   final String permission;
   final int user_id;
   final int branch_id;
-
+  final int eod_enable;
 
   LoginModel({
     required this.token,
@@ -12,6 +12,7 @@ class LoginModel {
     required this.permission,
     required this.user_id,
     required this.branch_id,
+    this.eod_enable = 0,
   });
 
   factory LoginModel.fromJson(Map<String, dynamic> json) {
@@ -21,6 +22,7 @@ class LoginModel {
       permission: json['permission'] ?? '',
       user_id: _toInt(json['user_id']),
       branch_id: _toInt(json['branch_id']),
+      eod_enable: _toInt(json['eod_enable']),
     );
   }
 

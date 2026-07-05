@@ -438,14 +438,38 @@ class AddCustomersView extends GetView<AddCustomersController> {
                   ),
                   10.height,
                   // Submit
-                  PrimaryButton(
-                    text: LocaleKeys.submit.tr,
-                    onPressed: () async {
-                      if (!controller.formKey.currentState!.validate()) return;
-                      controller.formKey.currentState!.save();
-                      await controller.submitBooking();
-                    },
-                  ),
+                  Obx(() {
+                    final eodEnabled = UserRepository.shared.eodEnabled.value;
+                    return Column(
+                      children: [
+                        if (!eodEnabled)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: const [
+                                Icon(Icons.lock_outline, size: 14, color: Colors.orange),
+                                SizedBox(width: 6),
+                                Text(
+                                  'End of day already closed',
+                                  style: TextStyle(color: Colors.orange, fontSize: 13),
+                                ),
+                              ],
+                            ),
+                          ),
+                        PrimaryButton(
+                          text: LocaleKeys.submit.tr,
+                          onPressed: eodEnabled
+                              ? () async {
+                                  if (!controller.formKey.currentState!.validate()) return;
+                                  controller.formKey.currentState!.save();
+                                  await controller.submitBooking();
+                                }
+                              : null,
+                        ),
+                      ],
+                    );
+                  }),
                   30.height,
                 ],
               ),

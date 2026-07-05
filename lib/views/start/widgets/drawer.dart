@@ -22,9 +22,34 @@ class DrawerWidget extends StatelessWidget {
     Get.toNamed(Routes.contactUs);
   }
 
+  void profileHandleTap() {
+    Get.back();
+    Get.toNamed(Routes.profile);
+  }
+
   void cashSummaryByBMHandleTap() {
     Get.back();
     Get.toNamed(Routes.cashSummaryByBM);
+  }
+
+  void cashSummaryCoHandleTap() {
+    Get.back();
+    Get.toNamed(Routes.cashSummaryCo);
+  }
+
+  void collectedVsPlanHandleTap() {
+    Get.back();
+    Get.toNamed(Routes.collectedVsPlan);
+  }
+
+  void startOfDayHandleTap() {
+    Get.back();
+    Get.toNamed(Routes.startOfDay);
+  }
+
+  void endOfDayHandleTap() {
+    Get.back();
+    Get.toNamed(Routes.endOfDay);
   }
 
   void logOutHandleTap() {
@@ -108,8 +133,10 @@ class DrawerWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final user = UserRepository.shared.profile;
+    final isCEOorBM = UserRepository.shared.isEco || UserRepository.shared.isBM;
+
     return Drawer(
-      // backgroundColor: AppColor.primary,
       shape: const RoundedRectangleBorder(),
       child: Container(
         decoration: const BoxDecoration(
@@ -120,96 +147,178 @@ class DrawerWidget extends StatelessWidget {
           ),
         ),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // ── Header: logo + user info ──────────────────────────
+            Container(
+              color: Colors.white,
+              width: double.infinity,
+              padding: EdgeInsets.only(
+                top: MediaQuery.of(context).padding.top + 16,
+                bottom: 16,
+                left: 16,
+                right: 16,
+              ),
+              child: Column(
+                children: [
+                  Image.asset(AssetPath.appLogo.path, height: 56, fit: BoxFit.contain),
+                  12.height,
+                  const Divider(height: 1),
+                  12.height,
+                  Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 22,
+                        backgroundColor: AppColor.hardOrange,
+                        child: Text(
+                          user.name.isNotEmpty ? user.name[0].toUpperCase() : 'U',
+                          style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      12.width,
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              user.name,
+                              style: AppTextStyle.normalPrimaryBold,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            4.height,
+                            Text(
+                              user.type.isNotEmpty && user.type != 'N/A' ? user.type : user.email,
+                              style: AppTextStyle.smallGreyRegular,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
+            // ── Menu items ────────────────────────────────────────
             Expanded(
               child: ListView(
-                physics: const NeverScrollableScrollPhysics(),
-                padding: EdgeInsets.zero,
+                padding: const EdgeInsets.symmetric(vertical: 8),
                 children: [
-                  // Header
-                  DrawerHeader(
-                    padding: 12.padRight,
-                    decoration: const BoxDecoration(color: Colors.white),
-                    child: Image.asset(
-                      AssetPath.appLogo.path,
-                      fit: BoxFit.contain,
-                    ),
+                  _sectionLabel('General'),
+                  CustomListTile(
+                    text: LocaleKeys.profile.tr,
+                    leadingIconData: Icons.person_outline,
+                    trillingIconData: Icons.arrow_forward_ios_rounded,
+                    onTap: profileHandleTap,
                   ),
-                  16.height,
-
-                  // Language
                   CustomListTile(
                     text: LocaleKeys.language.tr,
                     leadingIconData: Icons.language,
                     trillingIconData: Icons.arrow_forward_ios_rounded,
                     onTap: languageHandleTap,
                   ),
-                  16.height,
-
-                  // Term and condition
-                  // CustomListTile(
-                  //   text: LocaleKeys.termAndCondition.tr,
-                  //   leadingIconData: Icons.book_rounded,
-                  //   trillingIconData: Icons.arrow_forward_ios_rounded,
-                  //   onTap: termConditionHandleTap,
-                  // ),
-                  // 16.height,
-                  // Log out
                   CustomListTile(
-                    leadingIconData: Icons.delete,
-                    text: LocaleKeys.deleteAccount.tr,
-                    trillingIconData: Icons.arrow_forward_ios_rounded,
-                    onTap: () => _showDeleteDialog(context),
-                  ),
-                  16.height,
-
-                  // Contact us
-                  CustomListTile(
-                    leadingIconData: Icons.contact_support,
+                    leadingIconData: Icons.contact_support_outlined,
                     text: LocaleKeys.contactUs.tr,
                     trillingIconData: Icons.arrow_forward_ios_rounded,
                     onTap: contactUsHandleTap,
                   ),
-                  16.height,
 
-                  // Summary Cash by BM (CEO sees all BMs, BM sees their own)
-                  if (UserRepository.shared.isEco ||
-                      UserRepository.shared.isBM) ...[
+                  if (UserRepository.shared.isEco) ...[
+                    _divider(),
+                    _sectionLabel('Day Operations'),
                     CustomListTile(
-                      leadingIconData: Icons.summarize,
-                      text: 'Summary Cash by BM',
+                      leadingIconData: Icons.wb_sunny_outlined,
+                      text: 'Start Of Day',
+                      trillingIconData: Icons.arrow_forward_ios_rounded,
+                      onTap: startOfDayHandleTap,
+                    ),
+                    CustomListTile(
+                      leadingIconData: Icons.nights_stay_outlined,
+                      text: 'End Of Day',
+                      trillingIconData: Icons.arrow_forward_ios_rounded,
+                      onTap: endOfDayHandleTap,
+                    ),
+                  ],
+
+                  if (isCEOorBM) ...[
+                    _divider(),
+                    _sectionLabel('Reports'),
+                    CustomListTile(
+                      leadingIconData: Icons.summarize_outlined,
+                      text: UserRepository.shared.isEco ? 'CEO Taill' : 'BM Taill',
                       trillingIconData: Icons.arrow_forward_ios_rounded,
                       onTap: cashSummaryByBMHandleTap,
                     ),
-                    16.height,
+                    CustomListTile(
+                      leadingIconData: Icons.people_alt_outlined,
+                      text: UserRepository.shared.isEco ? 'OS Summary by BM' : 'OS Summary by CO',
+                      trillingIconData: Icons.arrow_forward_ios_rounded,
+                      onTap: cashSummaryCoHandleTap,
+                    ),
+                    CustomListTile(
+                      leadingIconData: Icons.bar_chart_rounded,
+                      text: 'Collected vs Plan',
+                      trillingIconData: Icons.arrow_forward_ios_rounded,
+                      onTap: collectedVsPlanHandleTap,
+                    ),
                   ],
 
-                  // Log out
-                  CustomListTile(
-                    leadingIconData: Icons.logout,
-                    text: LocaleKeys.logout.tr,
-                    trillingIconData: Icons.arrow_forward_ios_rounded,
-                    onTap: logOutHandleTap,
+                  _divider(),
+                  // Logout
+                  Material(
+                    color: Colors.transparent,
+                    child: ListTile(
+                      leading: const Icon(Icons.logout, color: Colors.redAccent),
+                      title: Text(LocaleKeys.logout.tr, style: AppTextStyle.midWhiteRegular),
+                      trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 17, color: Colors.redAccent),
+                      minLeadingWidth: 10,
+                      visualDensity: const VisualDensity(vertical: -2),
+                      onTap: logOutHandleTap,
+                    ),
                   ),
                 ],
               ),
             ),
-            SafeArea(top: false, child: versionWidget()),
-            8.height,
+
+            // ── Version ───────────────────────────────────────────
+            SafeArea(
+              top: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+                child: Text(
+                  '${LocaleKeys.version.tr} ${AppConfig.shared.version}',
+                  style: AppTextStyle.normalWhiteRegular,
+                ),
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget versionWidget() {
+  Widget _sectionLabel(String label) {
     return Padding(
-      padding: 16.padLeft,
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
       child: Text(
-        '${LocaleKeys.version.tr} ${AppConfig.shared.version}',
-        style: AppTextStyle.normalWhiteRegular,
+        label.toUpperCase(),
+        style: const TextStyle(
+          color: Colors.white70,
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 1.2,
+        ),
       ),
+    );
+  }
+
+  Widget _divider() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      child: Divider(color: Colors.white.withOpacity(0.25), height: 1),
     );
   }
 }

@@ -12,7 +12,10 @@ class LoanDisbursmentsView extends GetView<LoanDisbursmentsController> {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: CustomAppBar(
-        title: LocaleKeys.loanDisbursments.tr,
+        title:
+            controller.isEditing
+                ? LocaleKeys.update.tr
+                : LocaleKeys.loanDisbursments.tr,
         onBack: () => Navigator.pop(context, false),
       ),
       body: Obx(() {
@@ -324,35 +327,38 @@ class LoanDisbursmentsView extends GetView<LoanDisbursmentsController> {
                   //     await controller.submitBooking();
                   //   },
                   // ),
-                  Builder(
-                    builder: (context) {
-                      final canSubmit = UserRepository.shared.isCO;
-                      return Opacity(
-                        opacity: canSubmit ? 1.0 : 0.4,
-                        child: PrimaryButton(
-                          text: LocaleKeys.submit.tr,
-                          onPressed: () async {
-                            if (!canSubmit) {
-                              final role =
-                                  UserRepository.shared.isBM
-                                      ? 'Branch Manager'
-                                      : 'CEO';
-                              DialogManager.showDialog(
-                                title: 'Access Denied',
-                                subTitle:
-                                    '$role does not have permission to create disbursement.',
-                              );
-                              return;
-                            }
-                            if (!controller.formKey.currentState!.validate())
-                              return;
-                            controller.formKey.currentState!.save();
-                            await controller.submitBooking();
-                          },
-                        ),
-                      );
-                    },
-                  ),
+                  Obx(() {
+                    final eodEnabled = UserRepository.shared.eodEnabled.value;
+                    final canSubmit = UserRepository.shared.isCO && eodEnabled;
+                    return Opacity(
+                      opacity: UserRepository.shared.isCO ? 1.0 : 0.4,
+                      child: PrimaryButton(
+                        text:
+                            controller.isEditing
+                                ? LocaleKeys.update.tr
+                                : LocaleKeys.submit.tr,
+                        onPressed: () async {
+                          if (!UserRepository.shared.isCO) {
+                            final role =
+                                UserRepository.shared.isBM
+                                    ? 'Branch Manager'
+                                    : 'CEO';
+                            DialogManager.showDialog(
+                              title: 'Access Denied',
+                              subTitle:
+                                  '$role does not have permission to ${controller.isEditing ? 'edit' : 'create'} disbursement.',
+                            );
+                            return;
+                          }
+                          if (!canSubmit) return;
+                          if (!controller.formKey.currentState!.validate())
+                            return;
+                          controller.formKey.currentState!.save();
+                          await controller.submitBooking();
+                        },
+                      ),
+                    );
+                  }),
                   30.height,
                 ],
               ),

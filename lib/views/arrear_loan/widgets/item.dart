@@ -39,8 +39,7 @@ class ArrearItemWidget extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        delivery
-                            .clientId, // Old: delivery.client_code — see note 1
+                        'កូដ ${delivery.clientCode}',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: AppTextStyle.normalPrimaryBold.copyWith(
@@ -49,7 +48,7 @@ class ArrearItemWidget extends StatelessWidget {
                       ),
                       2.height,
                       Text(
-                        delivery.lastPaymentDate,
+                        'កាលបរិច្ឆេទបង់ ${delivery.lastPaymentDate}',
                         style: AppTextStyle.smallGreyRegular,
                       ),
                     ],
@@ -57,9 +56,7 @@ class ArrearItemWidget extends StatelessWidget {
                 ),
                 8.width,
                 Text(
-                  formatCurrency(
-                    delivery.totalOverdue,
-                  ), // Old: delivery.total_repayment
+                  formatCurrency(delivery.totalOverdue),
                   style: AppTextStyle.normalSecondaryBold.copyWith(
                     color: AppColor.red,
                   ),
@@ -76,7 +73,7 @@ class ArrearItemWidget extends StatelessWidget {
                   backgroundColor: AppColor.white,
                   child: ClipOval(
                     child: CustomNetworkImage(
-                      imageUrl: '', // Old: delivery.photo — see note 2
+                      imageUrl: '',
                       height: 48,
                       width: 48,
                       fit: BoxFit.cover,
@@ -105,7 +102,14 @@ class ArrearItemWidget extends StatelessWidget {
                       ),
                       4.height,
                       Text(
-                        'យឺត ${delivery.ageOfLoan} ថ្ងៃ', // Old: delivery.arrea — see note 3
+                        'ប្រាក់កម្ចី៖ ${formatCurrency(delivery.principal)}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTextStyle.smallGreyRegular,
+                      ),
+                      4.height,
+                      Text(
+                        'យឺត ${delivery.ageOfLoan} ថ្ងៃ',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: AppTextStyle.smallRedSemibold,
@@ -122,7 +126,7 @@ class ArrearItemWidget extends StatelessWidget {
   }
 
   String formatCurrency(String amount) {
-    return 'រៀល ${NumberFormat.currency(locale: 'en_US', symbol: '').format(double.parse(amount))}'
+    return '${NumberFormat.currency(locale: 'en_US', symbol: '').format(double.parse(amount))} រៀល'
         .replaceAll('.00', '');
   }
 }

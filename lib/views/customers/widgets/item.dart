@@ -130,12 +130,39 @@ class CustomersItemWidget extends StatelessWidget {
 
   Widget _trailing() {
     if (UserRepository.shared.isCO) {
-      return GestureDetector(
-        onTap: () => Get.toNamed(Routes.loandisbursments),
-        child: Text(
-          'Open Loan',
-          style: AppTextStyle.smallPrimaryBold.copyWith(color: AppColor.red),
-        ),
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          GestureDetector(
+            onTap: () => Get.toNamed(Routes.loandisbursments),
+            child: Text(
+              'Open Loan',
+              style: AppTextStyle.smallPrimaryBold.copyWith(color: AppColor.red),
+            ),
+          ),
+          6.height,
+          GestureDetector(
+            onTap: () => Get.toNamed(Routes.editCustomer, arguments: client),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: AppColor.primary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.edit_outlined, size: 12, color: AppColor.primary),
+                  3.width,
+                  Text(
+                    'Edit',
+                    style: AppTextStyle.smallPrimaryBold.copyWith(color: AppColor.primary),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       );
     }
     return const Icon(Icons.more_vert, color: AppColor.grey400, size: 20);

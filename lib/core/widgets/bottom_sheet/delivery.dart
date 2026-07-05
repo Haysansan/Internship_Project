@@ -142,10 +142,32 @@ class RepaymentSheet extends StatelessWidget {
             ),
             UIConstants.spacing.height,
 
-            PrimaryButton(
-              text: LocaleKeys.confirmation.tr,
-              onPressed: submitBooking,
-            ),
+            Obx(() {
+              final eodEnabled = UserRepository.shared.eodEnabled.value;
+              return Column(
+                children: [
+                  if (!eodEnabled)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: const [
+                          Icon(Icons.lock_outline, size: 14, color: Colors.orange),
+                          SizedBox(width: 6),
+                          Text(
+                            'End of day already closed',
+                            style: TextStyle(color: Colors.orange, fontSize: 13),
+                          ),
+                        ],
+                      ),
+                    ),
+                  PrimaryButton(
+                    text: LocaleKeys.confirmation.tr,
+                    onPressed: eodEnabled ? submitBooking : null,
+                  ),
+                ],
+              );
+            }),
             UIConstants.spacing.height,
           ],
         ),

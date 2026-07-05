@@ -158,15 +158,15 @@ class ReceivedController extends GetxController {
 
   final RxList<CoRepaymentGroup> coGroups = <CoRepaymentGroup>[].obs;
   final RxList<CoRepaymentGroup> filteredGroups = <CoRepaymentGroup>[].obs;
+
+  // CEO — BM roster from getRoleBm API, used for the filter dropdown.
+  final RxList<StaffModel> bmRoster = <StaffModel>[].obs;
+  final Rx<StaffModel?> selectedBm = Rx<StaffModel?>(null);
+
+  // BM — CO names derived from repayment records for the filter dropdown.
   final RxList<String> coNames = <String>[].obs;
-
-  // Maps roster display name -> id (CEO only), so the BM filter can match
-  // by id instead of name — the roster (get_role_bm) and the repayment
-  // records (cashReceiveBMList) can format the same BM's name differently,
-  // which made name-string matching silently return zero results.
-  final Map<String, int> _bmIdByName = {};
-
   final selectedOfficer = RxnString();
+
   final RxDouble totalKhr = 0.0.obs;
   final RxInt totalCOs = 0.obs;
 
@@ -196,45 +196,41 @@ class ReceivedController extends GetxController {
 
   Future<void> fetchPendingRepayments() async {
     isLoadingList.value = true;
+    selectedBm.value = null;
+    selectedOfficer.value = null;
+    filteredGroups.value = [];
     try {
       final branchId = await _getBranchId();
       final userId = await _getUserId();
       final permission = await _getPermission();
       final isCEO = UserRepository.shared.isEco;
 
-      final List data = [];
       if (isCEO) {
-        // cashReceiveBMList paginates with skip/hasMore, like
-        // report/loan/repayment — keep fetching until it's exhausted so a
-        // short list isn't silently capped at the first page.
-        var skip = 0;
-        var hasMore = true;
-        while (hasMore) {
-          final res = await Get.find<ApiService>().get(
-            EndPoints.cashReceiveBMList,
-            queryParameters: {
-              'branch_id': branchId,
-              'user_id': userId,
-              'permission': permission,
-              'skip': skip,
-            },
-            isShowLoading: false,
-          );
-          final page = getPropertyFromJson(res.data, 'data') ?? [];
-          data.addAll(page);
-          hasMore = getPropertyFromJson(res.data, 'hasMore') == true;
-          final nextSkip = int.tryParse(
-            getPropertyFromJson(res.data, 'nextSkip')?.toString() ?? '',
-          );
-
-          // If the server didn't actually advance the cursor, stop instead
-          // of re-fetching (and re-merging) the same page forever — that
-          // previously inflated the CEO's BM-receive totals with duplicates.
-          if (nextSkip == null || nextSkip <= skip) break;
-          skip = nextSkip;
-
-          if (page.isEmpty) break;
-        }
+        // CEO cards mirror the "Summary Cash by BM" screen — one card per
+        // BM showing their current balance from cashSummaryByBM.
+        final res = await Get.find<ApiService>().get(
+          EndPoints.cashSummaryByBM,
+          queryParameters: {
+            'branch_id': branchId,
+            'user_id': userId,
+            'permission': permission,
+          },
+          isShowLoading: false,
+        );
+        final List summaryData = getPropertyFromJson(res.data, 'data') ?? [];
+        final summaries =
+            summaryData.map((e) => BmCashSummary.fromJson(e)).toList();
+        coGroups.value =
+            summaries
+                .where((s) => s.totalAmount > 0)
+                .map(
+                  (s) => CoRepaymentGroup(
+                    coId: s.bmId,
+                    coName: s.bmName,
+                    amount: s.totalAmount,
+                  ),
+                )
+                .toList();
       } else {
         final response = await Get.find<ApiService>().get(
           EndPoints.cashReceiveFrom,
@@ -245,66 +241,63 @@ class ReceivedController extends GetxController {
           },
           isShowLoading: false,
         );
-        data.addAll(getPropertyFromJson(response.data, 'data') ?? []);
+        final List data = getPropertyFromJson(response.data, 'data') ?? [];
+
+        // Defensive dedupe in case the server re-sends the same loan.
+        final seenLoanIds = <String>{};
+        data.retainWhere((e) {
+          final loanId = e['loan_id']?.toString() ?? '';
+          return loanId.isEmpty || seenLoanIds.add(loanId);
+        });
+
+        final Map<int, List> recordsByGroupId = {};
+        for (final e in data) {
+          final groupId =
+              int.tryParse(e['loan_officer_id']?.toString() ?? '') ?? 0;
+          recordsByGroupId.putIfAbsent(groupId, () => []).add(e);
+        }
+
+        coGroups.value =
+            recordsByGroupId.entries
+                .map((entry) {
+                  final records = entry.value;
+                  final record = records.first;
+                  final nameKeys = [
+                    'loan_officer',
+                    'loan_officer_name',
+                    'full_name',
+                    'name',
+                  ];
+                  final name =
+                      nameKeys
+                          .map((k) => record[k]?.toString() ?? '')
+                          .firstWhere((v) => v.isNotEmpty, orElse: () => '');
+                  final amount = records.fold<double>(
+                    0.0,
+                    (sum, e) =>
+                        sum +
+                        (double.tryParse(
+                              e['total_repayment']?.toString() ?? '',
+                            ) ??
+                            0.0),
+                  );
+                  final loanIds =
+                      records
+                          .map((e) => e['loan_id']?.toString() ?? '')
+                          .where((id) => id.isNotEmpty)
+                          .toList();
+                  return CoRepaymentGroup(
+                    coId: entry.key,
+                    coName: name,
+                    amount: amount,
+                    loanIds: loanIds,
+                    items:
+                        records.map((e) => PaymentModel.fromJson(e)).toList(),
+                  );
+                })
+                .where((g) => g.amount > 0)
+                .toList();
       }
-
-      // Defensive dedupe in case the server re-sends the same loan on
-      // overlapping pages.
-      final seenLoanIds = <String>{};
-      data.retainWhere((e) {
-        final loanId = e['loan_id']?.toString() ?? '';
-        return loanId.isEmpty || seenLoanIds.add(loanId);
-      });
-
-      // CEO receives cash from BMs, BM receives cash from COs — the id
-      // key differs per role but the record shape is otherwise the same.
-      final idKey = isCEO ? 'bm_id' : 'loan_officer_id';
-      // 'bm'/'loan_officer' are only id-field prefixes, not the actual name
-      // key in the response — try the known name keys in order so this
-      // keeps working regardless of which one the API actually sends.
-      final nameKeys =
-          isCEO
-              ? ['bm', 'bm_name', 'full_name', 'name']
-              : ['loan_officer', 'loan_officer_name', 'full_name', 'name'];
-
-      // Each record is one loan/transfer; group them by sender so each card
-      // represents one CO/BM with their combined amount and the ids needed
-      // to confirm receipt of all of them at once.
-      final Map<int, List> recordsByGroupId = {};
-      for (final e in data) {
-        final groupId = int.tryParse(e[idKey]?.toString() ?? '') ?? 0;
-        recordsByGroupId.putIfAbsent(groupId, () => []).add(e);
-      }
-
-      coGroups.value =
-          recordsByGroupId.entries
-              .map((entry) {
-                final records = entry.value;
-                final record = records.first;
-                final name =
-                    nameKeys
-                        .map((k) => record[k]?.toString() ?? '')
-                        .firstWhere((v) => v.isNotEmpty, orElse: () => '');
-                final amount = records.fold<double>(
-                  0.0,
-                  (sum, e) =>
-                      sum + (double.tryParse(e['total_repayment']?.toString() ?? '') ?? 0.0),
-                );
-                final loanIds =
-                    records
-                        .map((e) => e['loan_id']?.toString() ?? '')
-                        .where((id) => id.isNotEmpty)
-                        .toList();
-                return CoRepaymentGroup(
-                  coId: entry.key,
-                  coName: name,
-                  amount: amount,
-                  loanIds: loanIds,
-                  items: records.map((e) => PaymentModel.fromJson(e)).toList(),
-                );
-              })
-              .where((g) => g.amount > 0)
-              .toList();
 
       if (isCEO) {
         // "Filter by BM" should list every BM on the roster, not just the
@@ -337,45 +330,58 @@ class ReceivedController extends GetxController {
         isShowLoading: false,
       );
       final data = getPropertyFromJson(res.data, 'data');
-      final roster =
+      bmRoster.value =
           ((data as List?) ?? [])
               .map((e) => StaffModel.fromJson(e))
               .where((bm) => bm.name.isNotEmpty)
               .toList();
-      _bmIdByName
-        ..clear()
-        ..addEntries(roster.map((bm) => MapEntry(bm.name, bm.id)));
-      coNames.value = roster.map((bm) => bm.name).toList();
     } catch (e) {
-      // Filter dropdown can fall back to whatever fetchPendingRepayments
-      // already derived from coGroups; not fatal on its own.
-      coNames.value = coGroups.map((g) => g.coName).toSet().toList();
+      // Not fatal — dropdown will be empty but receive cards still show.
     }
   }
 
+  // CEO: filter by StaffModel (ID-based, reliable).
+  void filterByBm(StaffModel? bm) {
+    selectedBm.value = bm;
+    if (bm == null) {
+      filteredGroups.value = [];
+      return;
+    }
+    filteredGroups.value =
+        coGroups.where((g) => g.coId == bm.id).toList();
+  }
+
+  // BM: filter by CO name string.
   void filterByOfficer(String? name) {
     selectedOfficer.value = name;
     if (name == null) {
       filteredGroups.value = [];
       return;
     }
-    final bmId = _bmIdByName[name];
     filteredGroups.value =
-        bmId != null
-            ? coGroups.where((g) => g.coId == bmId).toList()
-            : coGroups.where((g) => g.coName == name).toList();
+        coGroups.where((g) => g.coName == name).toList();
   }
 
-  List<CoRepaymentGroup> get displayedGroups =>
-      selectedOfficer.value == null ? coGroups : filteredGroups;
+  List<CoRepaymentGroup> get displayedGroups {
+    final isCEO = UserRepository.shared.isEco;
+    if (isCEO) {
+      return selectedBm.value == null ? coGroups : filteredGroups;
+    }
+    return selectedOfficer.value == null ? coGroups : filteredGroups;
+  }
 
   double get displayedTotalKhr =>
       displayedGroups.fold(0.0, (sum, g) => sum + g.amount);
 
-  int get displayedCOCount =>
-      selectedOfficer.value == null ? totalCOs.value : displayedGroups.length;
+  int get displayedCOCount {
+    final isCEO = UserRepository.shared.isEco;
+    if (isCEO) {
+      return selectedBm.value == null ? totalCOs.value : displayedGroups.length;
+    }
+    return selectedOfficer.value == null ? totalCOs.value : displayedGroups.length;
+  }
 
-  Future<void> receiveGroup(CoRepaymentGroup group) async {
+  Future<void> receiveGroup(CoRepaymentGroup group, {double? amountReal}) async {
     isReceiving.value = true;
     try {
       final branchId = await _getBranchId();
@@ -386,13 +392,14 @@ class ReceivedController extends GetxController {
       final isCEO = UserRepository.shared.isEco;
 
       if (isCEO) {
-        // CEO receiving cash from a BM.
+        // CEO receiving cash from a BM — sourced from cashSummaryByBM so
+        // there are no individual loan ids; send bm_id + amount only.
         await Get.find<ApiService>().post(EndPoints.cashCeoReceiveFromBM, {
           'branch_id': branchId,
           'user_id': userId,
           'bm_id': group.coId,
           'cash_ceo_id': userId,
-          'loan_ids': loanIds,
+          'amount': amountReal ?? group.amount,
         }, isShowLoading: true);
       } else {
         // BM receiving cash from a CO.
@@ -405,10 +412,14 @@ class ReceivedController extends GetxController {
         }, isShowLoading: true);
       }
 
-      coGroups.remove(group);
-      filteredGroups.remove(group);
-      totalKhr.value -= group.amount;
-      receivedKhr.value += group.amount;
+      DialogManager.showDialog(
+        title: LocaleKeys.successfully.tr,
+        subTitle: LocaleKeys.youHavesuccessfullysyncData.tr,
+        onPressed: () {
+          Get.back();
+          fetchPendingRepayments();
+        },
+      );
     } catch (e) {
       DialogManager.showDialog(
         title: LocaleKeys.error.tr,

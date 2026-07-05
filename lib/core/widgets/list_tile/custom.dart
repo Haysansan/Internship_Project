@@ -17,16 +17,19 @@ class CustomListTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      title: Text(
-        text,
-        style: AppTextStyle.midWhiteRegular,
+    return Material(
+      color: Colors.transparent,
+      child: ListTile(
+        title: Text(
+          text,
+          style: AppTextStyle.midWhiteRegular,
+        ),
+        leading: Icon(leadingIconData, color: AppColor.white),
+        trailing: Icon(trillingIconData, size: 17, color: AppColor.white),
+        minLeadingWidth: 10,
+        visualDensity: const VisualDensity(vertical: -2),
+        onTap: onTap,
       ),
-      leading: Icon(leadingIconData, color: AppColor.white),
-      trailing: Icon(trillingIconData, size: 17, color: AppColor.white),
-      minLeadingWidth: 10,
-      visualDensity: const VisualDensity(vertical: -2),
-      onTap: onTap,
     );
   }
 }

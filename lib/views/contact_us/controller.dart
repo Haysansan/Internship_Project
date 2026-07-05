@@ -7,23 +7,21 @@ class ContactUsController extends GetxController {
   final RxBool isLoading = false.obs;
 
   @override
-  void onInit() async {
-    await fetchContactUs();
+  void onInit() {
     super.onInit();
+    fetchContactUs();
   }
 
   Future<void> fetchContactUs() async {
     try {
       isLoading.value = true;
-
       final res = await Get.find<ApiService>().get(EndPoints.contactUs);
       final data = getPropertyFromJson(res.data, 'data');
-
-      contactUs.value = ContactUsModel.fromJson(data);
-    } catch (e) {
-      if (isClosed) {
-        return;
+      if (data != null) {
+        contactUs.value = ContactUsModel.fromJson(data);
       }
+    } catch (e) {
+      if (isClosed) return;
       ExceptionHandler.handleException(e);
     } finally {
       isLoading.value = false;
