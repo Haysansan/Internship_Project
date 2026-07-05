@@ -26,6 +26,8 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+    <string>TTC Mobile requires location access to provide location-based services while the app is in use and when permitted in the background.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>This app uses your location to fill in the GIS coordinates for a customer's address.</string>
 	<key>UIApplicationSceneManifest</key>
