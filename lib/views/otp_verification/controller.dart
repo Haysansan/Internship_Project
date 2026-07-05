@@ -18,10 +18,18 @@ class OtpVerificationController extends GetxController {
 
   late int userId;
 
+  // Test phone number that always uses a fixed OTP code instead of one sent
+  // by SMS, so QA can log in without waiting on a real message. It's still
+  // submitted through the normal verifyOtp API call, not bypassed locally.
+  static const String _testPhoneNumber = '0967975299';
+  static const String _testOtpCode = '123456';
+
   @override
   void onInit() {
     super.onInit();
     userId = (Get.arguments?['userId'] ?? 0) as int;
+    final String phone = (Get.arguments?['phone'] ?? '') as String;
+    if (phone == _testPhoneNumber) otpCtl.text = _testOtpCode;
     //sendOtp();
   }
 

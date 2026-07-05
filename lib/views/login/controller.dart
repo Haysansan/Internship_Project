@@ -89,7 +89,10 @@ class LoginController extends GetxController {
       if (await _requiresOtp()) {
         Get.offAllNamed(
           Routes.otpVerification,
-          arguments: {'userId': login.user_id},
+          arguments: {
+            'userId': login.user_id,
+            'phone': usernameCtl.text.replaceAll(' ', '').trim(),
+          },
         );
         return;
       }
