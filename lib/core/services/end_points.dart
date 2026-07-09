@@ -84,12 +84,12 @@ class EndPoints {
   static String get cashReceiveBMList => 'report/loan/cashReceiveBMList';
   static String get cashReceiveFromStore =>
       'report/loan/cash_receive_from_store';
-  static String get cashCeoReceiveFromBM =>
-      'report/loan/cashCeoReceiveFromBM';
+  static String get cashCeoReceiveFromBM => 'report/loan/cashCeoReceiveFromBM';
 
   static String get cashSummaryByBM => 'report/loan/cashSummaryByBM';
   static String get cashSummaryCo => 'report/loan/outstandingSummaryByCO';
-  static String get outstandingSummaryByBM => 'report/loan/outstandingSummaryByBM';
+  static String get outstandingSummaryByBM =>
+      'report/loan/outstandingSummaryByBM';
 
   // TODO: placeholder path — backend hasn't built this endpoint yet
   // (every variant tried 404s). Swap in the real path once available.
@@ -103,9 +103,9 @@ class EndPoints {
   static String get endOfDayExpenses => 'report/loan/endOfDayExpenses';
   static String get endOfDayCashCeo => 'report/loan/end_of_day_cash_ceo';
 
-  static String get sendOtp => 'login/otp';
-  static String get verifyOtp => 'login/otp/verify';
-  static String get resendOtp => 'login/otp/resend';
+  // static String get sendOtp => 'login/otp';
+  // static String get verifyOtp => 'login/otp/verify';
+  // static String get resendOtp => 'login/otp/resend';
   static String rejectLoan(String loanId) => 'loan/$loanId/reject_loan';
 
   static String get collectedVsPlan => 'report/loan/collectedVsPlan';

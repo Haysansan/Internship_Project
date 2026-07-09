@@ -86,16 +86,16 @@ class LoginController extends GetxController {
 
       // OTP is only required on a fresh install's first login — once this
       // device has verified OTP, plain logins (even after logout) skip it.
-      if (await _requiresOtp()) {
-        Get.offAllNamed(
-          Routes.otpVerification,
-          arguments: {
-            'userId': login.user_id,
-            'phone': usernameCtl.text.replaceAll(' ', '').trim(),
-          },
-        );
-        return;
-      }
+      // if (await _requiresOtp()) {
+      //   Get.offAllNamed(
+      //     Routes.otpVerification,
+      //     arguments: {
+      //       'userId': login.user_id,
+      //       'phone': usernameCtl.text.replaceAll(' ', '').trim(),
+      //     },
+      //   );
+      //   return;
+      // }
 
       await _persistSession(login);
       Get.offAllNamed(Routes.start);

@@ -81,11 +81,11 @@ class Routes {
       page: () => const LoginView(),
       binding: LoginBinding(),
     ),
-    GetPage(
-      name: otpVerification,
-      page: () => const OtpVerificationView(),
-      binding: OtpVerificationBinding(),
-    ),
+    // GetPage(
+    //   name: otpVerification,
+    //   page: () => const OtpVerificationView(),
+    //   binding: OtpVerificationBinding(),
+    // ),
     GetPage(
       name: register,
       page: () => const RegisterView(),

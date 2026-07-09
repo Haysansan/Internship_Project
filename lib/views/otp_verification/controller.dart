@@ -1,173 +1,173 @@
-import 'dart:async';
+// import 'dart:async';
 
-import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import 'package:apploan/core/core.dart';
-import 'package:apploan/flavor/flavor.dart';
-import 'package:apploan/models/models.dart';
-import 'package:apploan/routes.dart';
+// import 'package:flutter/material.dart';
+// import 'package:get/get.dart';
+// import 'package:apploan/core/core.dart';
+// import 'package:apploan/flavor/flavor.dart';
+// import 'package:apploan/models/models.dart';
+// import 'package:apploan/routes.dart';
 
-class OtpVerificationController extends GetxController {
-  final GlobalKey<FormState> formKey = GlobalKey<FormState>();
-  final TextEditingController otpCtl = TextEditingController();
+// class OtpVerificationController extends GetxController {
+//   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
+//   final TextEditingController otpCtl = TextEditingController();
 
-  final RxBool isVerifying = false.obs;
-  final RxBool isResending = false.obs;
-  final RxInt resendCountdown = 0.obs;
-  Timer? _resendTimer;
+//   final RxBool isVerifying = false.obs;
+//   final RxBool isResending = false.obs;
+//   final RxInt resendCountdown = 0.obs;
+//   Timer? _resendTimer;
 
-  late int userId;
+//   late int userId;
 
-  // Test phone number that always uses a fixed OTP code instead of one sent
-  // by SMS, so QA can log in without waiting on a real message. It's still
-  // submitted through the normal verifyOtp API call, not bypassed locally.
-  static const String _testPhoneNumber = '0967975299';
-  static const String _testOtpCode = '123456';
+//   // Test phone number that always uses a fixed OTP code instead of one sent
+//   // by SMS, so QA can log in without waiting on a real message. It's still
+//   // submitted through the normal verifyOtp API call, not bypassed locally.
+//   static const String _testPhoneNumber = '0967975299';
+//   static const String _testOtpCode = '123456';
 
-  @override
-  void onInit() {
-    super.onInit();
-    userId = (Get.arguments?['userId'] ?? 0) as int;
-    final String phone = (Get.arguments?['phone'] ?? '') as String;
-    if (phone == _testPhoneNumber) otpCtl.text = _testOtpCode;
-    //sendOtp();
-  }
+//   @override
+//   void onInit() {
+//     super.onInit();
+//     userId = (Get.arguments?['userId'] ?? 0) as int;
+//     final String phone = (Get.arguments?['phone'] ?? '') as String;
+//     if (phone == _testPhoneNumber) otpCtl.text = _testOtpCode;
+//     //sendOtp();
+//   }
 
-  @override
-  void onClose() {
-    otpCtl.dispose();
-    _resendTimer?.cancel();
-    super.onClose();
-  }
+//   @override
+//   void onClose() {
+//     otpCtl.dispose();
+//     _resendTimer?.cancel();
+//     super.onClose();
+//   }
 
-  void _startResendCountdown() {
-    resendCountdown.value = 60;
-    _resendTimer?.cancel();
-    _resendTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (resendCountdown.value <= 1) {
-        resendCountdown.value = 0;
-        timer.cancel();
-      } else {
-        resendCountdown.value--;
-      }
-    });
-  }
+//   void _startResendCountdown() {
+//     resendCountdown.value = 60;
+//     _resendTimer?.cancel();
+//     _resendTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+//       if (resendCountdown.value <= 1) {
+//         resendCountdown.value = 0;
+//         timer.cancel();
+//       } else {
+//         resendCountdown.value--;
+//       }
+//     });
+//   }
 
-  Future<void> sendOtp() async {
-    try {
-      isResending.value = true;
-      await Get.find<ApiService>().post(EndPoints.sendOtp, {
-        'user_id': userId,
-      }, isShowLoading: false);
-      _startResendCountdown();
-    } catch (e) {
-      if (isClosed) return;
-      ExceptionHandler.handleException(e);
-    } finally {
-      isResending.value = false;
-    }
-  }
+//   Future<void> sendOtp() async {
+//     try {
+//       isResending.value = true;
+//       await Get.find<ApiService>().post(EndPoints.sendOtp, {
+//         'user_id': userId,
+//       }, isShowLoading: false);
+//       _startResendCountdown();
+//     } catch (e) {
+//       if (isClosed) return;
+//       ExceptionHandler.handleException(e);
+//     } finally {
+//       isResending.value = false;
+//     }
+//   }
 
-  Future<void> resendOtp() async {
-    if (resendCountdown.value > 0 || isResending.value) return;
+//   Future<void> resendOtp() async {
+//     if (resendCountdown.value > 0 || isResending.value) return;
 
-    try {
-      isResending.value = true;
-      await Get.find<ApiService>().post(EndPoints.resendOtp, {
-        'user_id': userId,
-      }, isShowLoading: false);
-      _startResendCountdown();
-      if (isClosed) return;
-      DialogManager.showDialog(
-        title: LocaleKeys.successfully.tr,
-        subTitle: LocaleKeys.otpSent.tr,
-      );
-    } catch (e) {
-      if (isClosed) return;
-      ExceptionHandler.handleException(e);
-    } finally {
-      isResending.value = false;
-    }
-  }
+//     try {
+//       isResending.value = true;
+//       await Get.find<ApiService>().post(EndPoints.resendOtp, {
+//         'user_id': userId,
+//       }, isShowLoading: false);
+//       _startResendCountdown();
+//       if (isClosed) return;
+//       DialogManager.showDialog(
+//         title: LocaleKeys.successfully.tr,
+//         subTitle: LocaleKeys.otpSent.tr,
+//       );
+//     } catch (e) {
+//       if (isClosed) return;
+//       ExceptionHandler.handleException(e);
+//     } finally {
+//       isResending.value = false;
+//     }
+//   }
 
-  Future<void> verifyOtp() async {
-    if (!formKey.currentState!.validate()) return;
+//   Future<void> verifyOtp() async {
+//     if (!formKey.currentState!.validate()) return;
 
-    try {
-      isVerifying.value = true;
-      final deviceName = await DeviceInfoHelper.getDeviceName();
-      final deviceId = await DeviceInfoHelper.getDeviceId();
-      final res = await Get.find<ApiService>().post(EndPoints.verifyOtp, {
-        'user_id': userId,
-        'otp': otpCtl.text.trim(),
-        'device_name': deviceName,
-        'device_id': deviceId,
-      }, isShowLoading: true);
+//     try {
+//       isVerifying.value = true;
+//       final deviceName = await DeviceInfoHelper.getDeviceName();
+//       final deviceId = await DeviceInfoHelper.getDeviceId();
+//       final res = await Get.find<ApiService>().post(EndPoints.verifyOtp, {
+//         'user_id': userId,
+//         'otp': otpCtl.text.trim(),
+//         'device_name': deviceName,
+//         'device_id': deviceId,
+//       }, isShowLoading: true);
 
-      if (res.statusCode != 200 || res.data['success'] == false) {
-        DialogManager.showDialog(
-          title: LocaleKeys.error.tr,
-          subTitle: res.data['message'] ?? LocaleKeys.invalidOtp.tr,
-        );
-        return;
-      }
+//       if (res.statusCode != 200 || res.data['success'] == false) {
+//         DialogManager.showDialog(
+//           title: LocaleKeys.error.tr,
+//           subTitle: res.data['message'] ?? LocaleKeys.invalidOtp.tr,
+//         );
+//         return;
+//       }
 
-      final data = getPropertyFromJson(res.data, 'data');
-      final LoginModel login = LoginModel.fromJson(data);
+//       final data = getPropertyFromJson(res.data, 'data');
+//       final LoginModel login = LoginModel.fromJson(data);
 
-      final String permission = login.permission.toLowerCase();
-      if (permission.isNotEmpty &&
-          permission != Rule.co.name &&
-          permission != Rule.bm.name &&
-          permission != Rule.ceo.name &&
-          permission != 'eco') {
-        DialogManager.showDialog(
-          title: LocaleKeys.permission.tr,
-          subTitle: LocaleKeys.noPermission.tr,
-        );
-        return;
-      }
+//       final String permission = login.permission.toLowerCase();
+//       if (permission.isNotEmpty &&
+//           permission != Rule.co.name &&
+//           permission != Rule.bm.name &&
+//           permission != Rule.ceo.name &&
+//           permission != 'eco') {
+//         DialogManager.showDialog(
+//           title: LocaleKeys.permission.tr,
+//           subTitle: LocaleKeys.noPermission.tr,
+//         );
+//         return;
+//       }
 
-      /// Pass token because when user logs in for the first time there is
-      /// no token value when we init AppConfig in main.
-      AppConfig.shared.token = login.token;
+//       /// Pass token because when user logs in for the first time there is
+//       /// no token value when we init AppConfig in main.
+//       AppConfig.shared.token = login.token;
 
-      await SharedPreferencesManager.setValue(
-        Credential.token.name,
-        login.token,
-      );
-      await SharedPreferencesManager.setValue('name', login.name);
-      await SharedPreferencesManager.setValue(
-        Credential.branch_id.name,
-        login.branch_id,
-      );
-      await SharedPreferencesManager.setValue(
-        Credential.user_id.name,
-        login.user_id,
-      );
-      await SharedPreferencesManager.setValue(
-        Credential.permission.name,
-        login.permission,
-      );
-      await SharedPreferencesManager.setValue('eod_enable', login.eod_enable);
+//       await SharedPreferencesManager.setValue(
+//         Credential.token.name,
+//         login.token,
+//       );
+//       await SharedPreferencesManager.setValue('name', login.name);
+//       await SharedPreferencesManager.setValue(
+//         Credential.branch_id.name,
+//         login.branch_id,
+//       );
+//       await SharedPreferencesManager.setValue(
+//         Credential.user_id.name,
+//         login.user_id,
+//       );
+//       await SharedPreferencesManager.setValue(
+//         Credential.permission.name,
+//         login.permission,
+//       );
+//       await SharedPreferencesManager.setValue('eod_enable', login.eod_enable);
 
-      // Marks this install as OTP-verified so future logins (even after
-      // logout) skip the OTP step — only a fresh install requires it again.
-      await SharedPreferencesManager.setValue(
-        Credential.device_verified.name,
-        true,
-      );
+//       // Marks this install as OTP-verified so future logins (even after
+//       // logout) skip the OTP step — only a fresh install requires it again.
+//       await SharedPreferencesManager.setValue(
+//         Credential.device_verified.name,
+//         true,
+//       );
 
-      UserRepository.shared.setEodEnabled(login.eod_enable);
-      UserRepository.shared.setUserTypeFromPermission(login.permission);
-      await UserRepository.shared.fetchProfile(login.user_id);
+//       UserRepository.shared.setEodEnabled(login.eod_enable);
+//       UserRepository.shared.setUserTypeFromPermission(login.permission);
+//       await UserRepository.shared.fetchProfile(login.user_id);
 
-      Get.offAllNamed(Routes.start);
-    } catch (e) {
-      if (isClosed) return;
-      ExceptionHandler.handleException(e);
-    } finally {
-      isVerifying.value = false;
-    }
-  }
-}
+//       Get.offAllNamed(Routes.start);
+//     } catch (e) {
+//       if (isClosed) return;
+//       ExceptionHandler.handleException(e);
+//     } finally {
+//       isVerifying.value = false;
+//     }
+//   }
+// }
