@@ -1,9 +1,11 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SharedPreferencesManager {
-  static Future<SharedPreferences> get _instance => SharedPreferences.getInstance();
+  static Future<SharedPreferences> get _instance =>
+      SharedPreferences.getInstance();
 
-  static Future<bool> containsKey(String key) async => (await _instance).containsKey(key);
+  static Future<bool> containsKey(String key) async =>
+      (await _instance).containsKey(key);
 
   static Future<dynamic> get(String key) async => (await _instance).get(key);
 
@@ -16,6 +18,11 @@ class SharedPreferencesManager {
       return int.tryParse(value);
     }
     return null;
+  }
+
+  static Future<void> clear() async {
+    final prefs = await _instance;
+    await prefs.clear();
   }
 
   static Future<bool> remove(String key) async => (await _instance).remove(key);

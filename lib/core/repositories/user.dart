@@ -49,13 +49,18 @@ class UserRepository {
   ProfileModel get profile => _profile ?? _emptyProfile;
 
   Future<void> logout() async {
-    SharedPreferencesManager.remove(Credential.token.name);
+    await SharedPreferencesManager.clear();
     AppConfig.shared.isDeliveryTapOpened = false;
+    _profile = null;
+    _permission.value = '';
+    _isCO = false;
+    _isBM = false;
+    _isEco = false;
     Get.offAllNamed(Routes.login);
   }
 
   void setProfile(ProfileModel profile) {
-    setUserType(profile.type);
+    setUserTypeFromPermission(profile.type);
     _profile = profile;
   }
 

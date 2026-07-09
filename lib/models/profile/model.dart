@@ -30,7 +30,6 @@ class ProfileModel {
     required this.type,
     required this.full_name,
   });
-
   factory ProfileModel.fromJson(Map<String, dynamic> json) {
     return ProfileModel(
       id: json['id'] ?? 0,
@@ -45,26 +44,26 @@ class ProfileModel {
       updated_at: json['updated_at'] ?? 'N/A',
       profilePath: json['profilePath'] ?? json['profile_path'] ?? 'N/A',
       policy: json['policy'] ?? 'N/A',
-      type: json['type'] ?? 'N/A',
+      type: json['permission'] ?? json['type'] ?? 'N/A',
       full_name: json['full_name'] ?? 'N/A',
     );
   }
-  Map<String,dynamic> toJson(){
-      final Map<String,dynamic> data = new Map<String,dynamic>();
-      data['id'] = this.id;
-      data['name'] = this.name;
-      data['email'] = this.email;
-      data['profile_path'] = this.profile;
-      data['phone'] = this.phone;
-      data['gender'] = this.gender;
-      data['profile_path'] = this.profilePath;
-      data["status"] = this.status;
-      data['branch_id'] = this.branch_id;
-      data['created_at'] = this.created_at;
-      data['updated_at'] = this.updated_at;
-      data['policy'] = this.policy;
-      data['type'] = this.type;
-      data['full_name'] = this.full_name;
-      return data;
-    }
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['id'] = this.id;
+    data['name'] = this.name;
+    data['email'] = this.email;
+    data['profile_path'] = this.profile;
+    data['phone'] = this.phone;
+    data['gender'] = this.gender;
+    data['profile_path'] = this.profilePath;
+    data["status"] = this.status;
+    data['branch_id'] = this.branch_id;
+    data['created_at'] = this.created_at;
+    data['updated_at'] = this.updated_at;
+    data['policy'] = this.policy;
+    data['type'] = this.type;
+    data['full_name'] = this.full_name;
+    return data;
   }
+}

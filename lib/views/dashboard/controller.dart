@@ -266,9 +266,14 @@ class DashboardController extends GetxController {
         NumberFormat('#,##0.00').format(amount);
     final double rate = exchangeRate.value;
 
-    activeCOCount.value = coSummaries.fold(0, (sum, c) => sum + c.activeClients);
-    overdueCOCount.value =
-        coSummaries.fold(0, (sum, c) => sum + c.overdueClients);
+    activeCOCount.value = coSummaries.fold(
+      0,
+      (sum, c) => sum + c.activeClients,
+    );
+    overdueCOCount.value = coSummaries.fold(
+      0,
+      (sum, c) => sum + c.overdueClients,
+    );
     // collectedCOCount.value = coSummaries.where((c) => c.paidClients > 0).length;
 
     final outstandingSum = coSummaries.fold(
@@ -298,17 +303,14 @@ class DashboardController extends GetxController {
 
     loanOutstanding.value = _formatAmount(outstandingSum);
     overdueAmountStr.value = _formatAmount(overdueSum);
-    principal.value =  _formatAmount(principalSum);
+    principal.value = _formatAmount(principalSum);
     totalToCollect.value = _formatAmount(toCollectSum);
     totalCollected.value =
         '${_formatAmount(toCollectSum)} / ${_formatAmount(totalAmountSum)}';
     totalToCollectKhr.value = _formatAmount(toCollectSum);
     totalCollectedKhr.value = _formatAmount(totalAmountSum - toCollectSum);
-    if (UserRepository.shared.isCO && coSummaries.isNotEmpty) {
-      displayUserName.value = coSummaries.first.coName;
-    } else {
-      displayUserName.value = UserRepository.shared.userName;
-    }
+
+    displayUserName.value = UserRepository.shared.userName;
   }
 
   Future<void> fetchPendingApprovalCount() async {
