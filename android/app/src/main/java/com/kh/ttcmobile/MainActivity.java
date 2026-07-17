@@ -1,4 +1,4 @@
-package com.kh.ttcmobile;
+package com.kh.iischool;
 
 import io.flutter.embedding.android.FlutterActivity;
 
